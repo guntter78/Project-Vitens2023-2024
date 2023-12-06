@@ -1,44 +1,55 @@
+#!/bin/bash
+ENV_DIR=vitens 
+DIR=/project
 
-#change echo text to green
-GREEN='\033[0;32m'
+echo " update and upgrade linux system...." 
+sleep 2
+sudo bash -c 'apt update && apt upgrade -y'
 
-update_system(){
-    echo "${GREEN} update and upgrade linux system...." 
-    sleep 2
-    sudo bash -c 'apt update && apt upgrade -y'
-}
+echo
+echo " install pip....." 
+sleep 2
+sudo bash -c 'apt install python3-pip -y'
 
-
-install_py_env(){
-    echo "${GREEN} install pip....." 
-    sleep 2
-    sudo bash -c 'apt install python3-pip -y'
-
-    echo
-    echo "install tools....." 
-    sleep 2
-    sudo bash -c 'apt install build-essential libssl-dev libffi-dev python3-dev -y'
+echo
+echo "install tools....." 
+sleep 2
+sudo bash -c 'apt install build-essential libssl-dev libffi-dev python3-dev -y'
     
-    echo
-    echo 'install python enviroment'
-    sleep 2
-    sudo bash -c 'apt install -y python3-venv' 
-}
-
-create_py_env(){
-    echo "create directory project...." 
-    sleep 2
-    sudo mkdir /project
-
-    echo
-    echo "change directory....." 
-    sleep 2
-    cd /project
-
-    echo
-    echo "create python enviroment......" 
-    sudo bash -c python3 -m venv vitens
-}
+echo
+echo 'install python enviroment'
+sleep 2
+sudo bash -c 'apt install -y python3-venv' 
 
 
-create_py_env
+echo
+echo "create directory project....:" 
+sleep 2
+sudo mkdir $DIR
+
+echo
+echo "change directory.....:" 
+sleep 2
+cd $DIR
+
+echo
+echo "copy directory website --> /project/vitens.....:" 
+cp -r /home/ubuntu/Documents/Vitens/website $DIR
+
+echo
+echo "create python enviroment......:" 
+sleep 2
+sudo python3 -m venv $ENV_DIR
+source $ENV_DIR/bin/activate 
+
+echo
+echo intall essential packages.......:
+echo install Flask...:
+sleep 2
+pip install Flask
+
+cd website
+python app.py
+
+
+
