@@ -27,14 +27,16 @@ echo "create directory project....:"
 sleep 2
 sudo mkdir $DIR
 
+
+echo
+cd ..
+echo "copy directory website --> /project/vitens.....:"
+cp -r website $DIR
+
 echo
 echo "change directory.....:" 
 sleep 2
 cd $DIR
-
-echo
-echo "copy directory website --> /project/vitens.....:" 
-cp -r /home/ubuntu/Documents/Vitens/website $DIR
 
 echo
 echo "create python enviroment......:" 
