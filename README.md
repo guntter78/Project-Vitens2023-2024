@@ -16,7 +16,7 @@ sudo bash vitens-bash/vitens.sh
 ```
 
 ## Setup USB Wi-Fi dongle
-To install the USB WiFi dongle (TL-WN725N) in the Raspberry first, you have to clone the repository.
+To install the USB WiFi dongle (TL-WN725N) in the Raspberry. You have to clone the repository.
 In this repository, there is a driver for the Linux systems
 ```
 git clone https://github.com/lwfinger/rtl8188eu
