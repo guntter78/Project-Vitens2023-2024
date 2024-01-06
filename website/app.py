@@ -8,9 +8,9 @@ def create_connection():
         # Verbinding maken met de PostgreSQL-database 'vitenswatersystem'
         conn = psycopg2.connect(
             host="localhost",
-            database="vitenswatersystem",
-            user='vitens',
-            password='project')
+            database=".",
+            user='.',
+            password='.')
         return conn
     except Exception as e:
         print(f"Fout bij het verbinden met de database: {str(e)}")
