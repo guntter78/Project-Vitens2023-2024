@@ -65,7 +65,6 @@ network={
    ssid="Wi-fi Name 2"
    psk="Wi-fi password"
 }
-
 ```
 
 
