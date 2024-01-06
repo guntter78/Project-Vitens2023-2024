@@ -22,6 +22,19 @@ In this repository, there is a driver for the Linux systems
 git clone https://github.com/lwfinger/rtl8188eu
 ```
 
+# Install some necessary packages as we will build the source firmware ourselves
+```
+sudo apt-get install -y build-essential git
+```
+
+# There is a package for raspberry pi to add the kernel headers, so you can pick one here (if one doesn't work, use the other)
+```
+sudo apt-get install -y linux-headers
+```
+```
+Sudo apt-get install -y raspberrypi-kernel-headers
+```
+
 To compile the driver, you need to have a make and a compiler installed. In addition, you must have the kernel headers installed. If you do not understand what this means, consult your distro.
 
 Compiling:
