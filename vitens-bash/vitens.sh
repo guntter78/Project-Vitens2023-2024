@@ -53,6 +53,7 @@ echo install Flask...:
 sleep 2
 pip install Flask
 pip install psycopg2-binary
+pip install psycopg2
 
 
 echo
