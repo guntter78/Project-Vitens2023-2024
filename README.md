@@ -9,14 +9,10 @@ after that. change the directory to the new Project-Vitens2023-2024 directory wi
 ```
 cd Project-Vitens2023-2024
 ```
-next go to the vitens-bash directory using the command
-```
-cd vitens-bash
-```
 
-than use the bash scrip to install all the necessary tools to run the website.
+Then use the bash scrip to install all the necessary tools to run the website.
 after using this script the website will run automatically
 ```
-sudo bash vitens.sh
+sudo bash vitens-bash/vitens.sh
 ```
 
