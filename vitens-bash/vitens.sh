@@ -70,7 +70,7 @@ createdb -h localhost -U vitens -e vitens_data
 echo
 echo add databas.....:
 echo start website......:
-cd website
+cd ../website
 python db.py
 python app.py
 
