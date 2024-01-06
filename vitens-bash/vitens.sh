@@ -52,7 +52,7 @@ echo intall essential packages.......:
 echo install Flask...:
 sleep 2
 pip install Flask
-pip pip install psycopg2-binary
+pip install psycopg2-binary
 
 
 echo
