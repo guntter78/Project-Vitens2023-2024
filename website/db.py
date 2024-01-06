@@ -1,63 +1,27 @@
 import psycopg2
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-# Connect to the PostgreSQL server
-conn = psycopg2.connect(
-    host="localhost",
-    database="vitens_data",
-    user='vitens',
-    password='project')
-
-cur = conn.cursor()
-
-# Drop the existing 'data' table if it exists
-cur.execute('DROP TABLE IF EXISTS data')
-
-# Create the new database 'vitenswatersystem' if it doesn't exist
-cur.execute('CREATE DATABASE IF NOT EXISTS vitenswatersystem')
-
-# Close the connection to the existing database
-cur.close()
-conn.close()
-
-# Create a new connection to the 'vitenswatersystem' database
-conn = psycopg2.connect(
-    host="localhost",
-    database="vitenswatersystem",
-    user='vitens',
-    password='project')
-
-cur = conn.cursor()
-
-# Create the new tables 'level', 'flowsensor', and 'pressuresensor'
-cur.execute('''
-    CREATE TABLE level (
-        level_id SERIAL PRIMARY KEY,
-        description VARCHAR(255)
+def create_database(dbname, user, password):
+    conn = psycopg2.connect(
+        dbname='postgres',
+        user=user,
+        password=password,
+        host='localhost'
     )
-''')
+    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
-cur.execute('''
-    CREATE TABLE flowsensor (
-        id SERIAL PRIMARY KEY,
-        sensor_type VARCHAR(1),
-        flow_rate NUMERIC,
-        consumption_amount NUMERIC,
-        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        level_id INTEGER REFERENCES level(level_id)
-    )
-''')
+    cur = conn.cursor()
 
-cur.execute('''
-    CREATE TABLE pressuresensor (
-        id SERIAL PRIMARY KEY,
-        sensor_type VARCHAR(1),
-        pressure NUMERIC,
-        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        level_id INTEGER REFERENCES level(level_id)
-    )
-''')
+    # Check if database exists
+    cur.execute("SELECT 1 FROM pg_database WHERE datname = %s", (dbname,))
+    exists = cur.fetchone()
+    if not exists:
+        cur.execute(f"CREATE DATABASE {dbname}")
+        print(f"Database '{dbname}' created.")
+    else:
+        print(f"Database '{dbname}' already exists.")
 
-# Commit the changes and close the connection
-conn.commit()
-cur.close()
-conn.close()
+    cur.close()
+    conn.close()
+
+create_database("vitenswatersystem", "vitens", "project")
