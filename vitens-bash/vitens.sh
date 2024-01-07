@@ -55,6 +55,8 @@ pip install Flask
 pip install psycopg2-binary
 pip install psycopg2
 
+echo install MQTT
+pip install paho-mqtt
 
 echo
 echo install POSTgreSQL.....:
