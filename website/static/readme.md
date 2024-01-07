@@ -1,10 +1,16 @@
-# In this map you add your own CSS
+# You use a static/ folder for local external resources
+So: javascript, css so on.
 
 For example:
 ## 
 ```
-index.css
-home.css
-sensor.css
+css/index.css
+css/home.css
+css/sensor.css
 ```
 
+For Js files you need make a different map
+```
+js/index.js
+js/home.js
+js/sensor.js
