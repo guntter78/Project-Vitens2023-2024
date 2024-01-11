@@ -32,7 +32,7 @@ There is a package for raspberry pi to add the kernel headers, so you can pick o
 sudo apt-get install -y linux-headers
 ```
 ```
-Sudo apt-get install -y raspberrypi-kernel-headers
+sudo apt-get install -y raspberrypi-kernel-headers
 ```
 
 To compile the driver, you need to have a make and a compiler installed. In addition, you must have the kernel headers installed. If you do not understand what this means, consult your distro.
