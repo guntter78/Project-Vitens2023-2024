@@ -80,7 +80,21 @@ network={
 }
 ```
 
+In the second Wi-fi dongle, there is an access point enabled so you can connect to the Wi-fi.
+The credentials are:
+```
+ssid = vitens-wifi-1
+wpa_passphrase = vitensproject
+```
 
+When there needs to be a change in the credentials of the access point it is in the /etc/hostapd/hostapd.conf file.  
+Also, there is a net.rules where every dongle has its own set of rules to follow.
+For example, wlan0 has always this mac-address "40:ed:00:b8:46:1b" and wlan1 "66:49:b5:ae:1a:08" so when the dongle is removed and put back in the wrong order is still have the same purpose instead of switching there work.
+The set of rules is in  /etc/udev/rules.d/70-persistent-net.rules     
+```
+SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="40:ed:00:b8:46:1b", NAME="wlan0"
+SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="66:49:b5:ae:1a:08", NAME="wlan1"
+```
 
 
 
