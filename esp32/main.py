@@ -5,11 +5,11 @@ import network
 from umqtt.simple import MQTTClient
 
 # WiFi credentials
-WIFI_SSID = 'your_wifi_ssid'
-WIFI_PASSWORD = 'your_wifi_password'
+WIFI_SSID = 'vitens-wifi-1'
+WIFI_PASSWORD = 'vitensproject'
 
 # MQTT broker information
-MQTT_BROKER = 'mqtt.yourbroker.com'
+MQTT_BROKER = '192.168.1.1'
 MQTT_PORT = 1883
 MQTT_TOPIC_FLOW = 'flow_data'
 MQTT_TOPIC_PRESSURE = 'pressure_data'
