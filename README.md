@@ -5,39 +5,36 @@ To install the website, clone first this repository by using the command:
 ```
 git clone https://github.com/guntter78/Project-Vitens2023-2024.git
 ```
-After the installation, Change the directory of your Linux to the new Project-Vitens2023-2024 directory with the command:
+After installation, change your Linux directory to the 'Project-Vitens2023-2024' directory using the following command:
 ```
 cd Project-Vitens2023-2024
 ```
-Then use the bash scrip to install all the necessary tools to run the website.
-after using this script the website will run automatically. To stop your website press ctrl + c
+Next, utilize the bash script to install all the required tools for running the website. Once you've executed this script, the website will start automatically. To stop the website, simply press Ctrl + C.
 ```
 sudo bash vitens-bash/vitens.sh
 ```
 
 ## Setup USB Wi-Fi dongle
-To install the USB WiFi dongle (TL-WN725N) in the Raspberry. You have to clone the repository.
-In this repository, there is a driver for the Linux systems
+To install the USB WiFi dongle (TL-WN725N) on the Raspberry Pi, you need to clone the repository. Within this repository, you will find a driver designed for Linux systems
 ```
 git clone https://github.com/AIRCRACK-NG/RTL8188EUS
 ```
 
-Install some necessary packages as we will build the source firmware ourselves
+Install the required packages since we will be building the source firmware ourselves
 ```
 sudo apt-get install -y build-essential git
 ```
 
-There is a package for raspberry pi to add the kernel headers, so you can pick one here (if one doesn't work, use the other)
+There is a Raspberry Pi package to add the kernel headers. You can choose one here, and if one doesn't work, try the other.
 ```
 sudo apt-get install -y linux-headers
 ```
 ```
 sudo apt-get install -y raspberrypi-kernel-headers
 ```
+To compile the driver, you must have 'make' and a compiler installed, along with the necessary kernel headers. If you are unsure about these requirements, please refer to your Linux distribution's documentation.
 
-To compile the driver, you need to have a make and a compiler installed. In addition, you must have the kernel headers installed. If you do not understand what this means, consult your distro.
-
-Compiling:
+Now, let's proceed with the compilation:
 ```
 make all
 ```
@@ -47,19 +44,18 @@ Installing:
 sudo make install
 ```
 
-Next you have to enable your WiFi dongle and add the credentials of your own Wi-fi
+Next, enable your WiFi dongle and configure it with the credentials of your own Wi-Fi network
 ```
 sudo nano /etc.network/interface
 ```
-
-Add the following commands in the file:
+Insert the following commands into the file
 ```
 auto wlan0
 iface wlan0 inet dhcp
 wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
 ```
 
-Now add your credentials in the file: wpa_supplicant.conf
+Then, input your credentials into the 'wpa_supplicant.conf' file
 ```
 network={
    ssid="Wi-fi Name"
@@ -67,7 +63,7 @@ network={
 }
 ```
 
-If you use multiple Wi-fi spots you can also add more in the file Wpa_supplicant.conf
+If you use multiple Wi-Fi networks, you can also add more of them in the 'wpa_supplicant.conf' file.
 ```
 network={
    ssid="Wi-fi Name 1"
@@ -80,14 +76,12 @@ network={
 }
 ```
 
-In the second Wi-fi dongle, there is an access point enabled so you can connect to the Wi-fi.
-The credentials are:
+The second Wi-Fi dongle has an access point enabled, allowing you to connect to the Wi-Fi. The credentials for this access point are:
 ```
 ssid = vitens-wifi-1
 wpa_passphrase = vitensproject
 ```
-
-When there needs to be a change in the credentials of the access point it is in the /etc/hostapd/hostapd.conf file. 
+When a change in the access point credentials is necessary, it should be made in the /etc/hostapd/hostapd.conf file.
 ```
 interface=wlan1
 driver=nl80211
@@ -104,9 +98,7 @@ wpa_key_mgmt=WPA-PSK
 wpa_pairwise=TKIP
 rsn_pairwise=CCMP
 ```
-Also, there is a net.rules where every dongle has its own set of rules to follow.
-For example, wlan0 has always this mac-address "40:ed:00:b8:46:1b" and wlan1 "66:49:b5:ae:1a:08" so when the dongle is removed and put back in the wrong order is still have the same purpose instead of switching there work.
-The set of rules is in  /etc/udev/rules.d/70-persistent-net.rules     
+Additionally, there is a 'net.rules' file where each dongle has its own set of rules to adhere to. For instance, 'wlan0' always has the MAC address '40:ed:00:b8:46:1b,' and 'wlan1' is assigned '66:49:b5:ae:1a:08.' This ensures that even if the dongles are removed and reinserted in a different order, they continue to serve their intended purposes. The set of rules can be found in the '/etc/udev/rules.d/70-persistent-net.rules' file.
 ```
 SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="40:ed:00:b8:46:1b", NAME="wlan0"
 SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="66:49:b5:ae:1a:08", NAME="wlan1"
