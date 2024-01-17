@@ -4,7 +4,7 @@ import json
 import logging
 
 # MQTT broker settings
-broker_address = "Broker IP address"
+broker_address = "192.168.1.1"
 broker_port = 1883
 topic = "UART"
 
