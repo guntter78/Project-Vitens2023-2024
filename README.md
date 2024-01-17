@@ -14,6 +14,13 @@ Next, utilize the bash script to install all the required tools for running the 
 sudo bash vitens-bash/vitens.sh
 ```
 
+
+
+
+
+
+
+
 ## Setup USB Wi-Fi dongle
 To install the USB WiFi dongle (TL-WN725N) on the Raspberry Pi, you need to clone the repository. Within this repository, you will find a driver designed for Linux systems
 ```
