@@ -89,6 +89,20 @@ wpa_passphrase = vitensproject
 
 When there needs to be a change in the credentials of the access point it is in the /etc/hostapd/hostapd.conf file. 
 ```
+interface=wlan1
+driver=nl80211
+ssid=vitens-wifi-1
+hw_mode=g
+channel=7
+wmm_enabled=0
+macaddr_acl=0
+auth_algs=1
+ignore_broadcast_ssid=0
+wpa=2
+wpa_passphrase=vitensproject
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=TKIP
+rsn_pairwise=CCMP
 ```
 Also, there is a net.rules where every dongle has its own set of rules to follow.
 For example, wlan0 has always this mac-address "40:ed:00:b8:46:1b" and wlan1 "66:49:b5:ae:1a:08" so when the dongle is removed and put back in the wrong order is still have the same purpose instead of switching there work.
