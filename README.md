@@ -59,11 +59,12 @@ iface wlan0 inet dhcp
 wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
 ```
 
-Then, input your credentials into the 'wpa_supplicant.conf' file
+Then, input the credentials into the 'wpa_supplicant.conf' file.
+It's necessary to have your hotspot on your laptop or wifi enabled (who are already imported in the 'wpa_supplicant.conf' file, because the AP of the RPi won't work when there is no connection
 ```
 network={
-   ssid="Wi-fi Name"
-   psk="Wi-fi password"
+   ssid="vitens-hotspot"
+   psk="vitensproject"
 }
 ```
 
@@ -82,14 +83,14 @@ network={
 
 The second Wi-Fi dongle has an access point enabled, allowing you to connect to the Wi-Fi. The credentials for this access point are:
 ```
-ssid = vitens-wifi-1
+ssid = vitens-rpi-ap
 wpa_passphrase = vitensproject
 ```
 When a change in the access point credentials is necessary, it should be made in the /etc/hostapd/hostapd.conf file.
 ```
 interface=wlan1
 driver=nl80211
-ssid=vitens-wifi-1
+ssid=vitens-rpi-ap
 hw_mode=g
 channel=7
 wmm_enabled=0
