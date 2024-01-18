@@ -4,6 +4,33 @@ import config
 import network
 from umqtt.simple import MQTTClient
 
+# Global variables
+is_reading_sensors = False  # True when green button is pressed | False when red button is pressed
+interval = 1000  # Interval for measuring sensors
+previous_millis = 0  # Variable to measure at certain intervals
+
+# Constants for ADC channels
+PRESSURE_CHANNELS = [config.pressure_1, config.pressure_2, config.pressure_3, config.pressure_4, config.pressure_5]
+
+# Constants for Digital channels
+FLOW_CHANNELS = [config.flow_1, config.flow_2, config.flow_3, config.flow_4, config.flow_5]
+
+flow_count = [0] * 5  # Counters for flow sensors
+
+# Coefficients for retrieving correct voltage from ADC conversion
+PRESSURE_COEFFICIENTS = [
+     4.3220814251979441e-002,
+     8.4389462175653155e-004,
+    -1.5602058901130114e-006,
+     2.2509419544953348e-009,
+    -1.7566834607660054e-012,
+     7.8573137930648812e-016,
+    -2.0129813454437095e-019,
+     2.7453128579968508e-023,
+    -1.5445682269067323e-027
+]
+
+
 # WiFi credentials
 WIFI_SSID = 'vitens-wifi-1'
 WIFI_PASSWORD = 'vitensproject'
@@ -21,48 +48,48 @@ def connect_wifi():
         print('Connecting to WiFi...')
         wlan.active(True)
         wlan.connect(WIFI_SSID, WIFI_PASSWORD)
+
+        # Blink LED while attempting to connect
+        for _ in range(10):
+            Pin(config.led_pin, Pin.OUT).on()
+            utime.sleep_ms(500)
+            Pin(config.led_pin, Pin.OUT).off()
+            utime.sleep_ms(500)
+
         while not wlan.isconnected():
             pass
+
         print('WiFi connected.')
     return wlan
 
 # Initialize MQTT client
 def connect_mqtt():
-    client = MQTTClient('esp32', MQTT_BROKER, port=MQTT_PORT)
-    client.connect()
-    return client
+    global led
+    
+    led_blinking = True
+    led_blink_interval = 500  # milliseconds
+
+    try:
+        client = MQTTClient('esp32', MQTT_BROKER, port=MQTT_PORT)
+        client.connect()
+        led_blinking = False  # Stop blinking when the connection is established
+        return client
+    except OSError as e:
+        if led_blinking:
+            # Blink LED to indicate ongoing connection attempt
+            led.value(not led.value())  # Toggle LED state
+            utime.sleep_ms(led_blink_interval)
+        print(f"MQTT Connection Error: {e}")
+        return None
+    finally:
+        if led_blinking:
+            # Turn off LED after the connection attempt
+            led.value(0)
+
 
 # Publish data to MQTT topics
 def publish_mqtt(client, topic, data):
     client.publish(topic, data)
-
-# Global variables
-is_reading_sensors = False  # True when green button is pressed | False when red button is pressed
-interval = 1000  # Interval for measuring sensors
-previous_millis = 0  # Variable to measure at certain intervals
-
-# Constants for ADC channels
-PRESSURE_CHANNELS = [config.pressure_1, config.pressure_2, config.pressure_3, config.pressure_4, config.pressure_5]
-
-# Constants for Digital channels
-FLOW_CHANNELS = [config.flow_1, config.flow_2, config.flow_3, config.flow_4, config.flow_5]
-
-flow_count = [0] * 5  # Counters for flow sensors
-
-# Coefficients for retrieving correct voltage from ADC conversion
-PRESSURE_COEFFICIENTS = [
-    6.5975240247683170e-002,
-    2.3331872929828966e-003,
-    -4.8069723069443875e-006,
-    9.0529077187442572e-009,
-    -9.0503795977116790e-012,
-    4.9700372015667751e-015,
-    -1.3758544388072411e-018,
-    8.2984518767945362e-023,
-    5.2923084399021789e-026,
-    -1.3369713854824626e-029,
-    9.8475878335393626e-034
-]
 
 # Function to perform multisampling, exclude extreme values, and return the averaged ADC value
 def multisample_adc(adc, num_samples=32):
@@ -100,7 +127,7 @@ def setup():
     # Set up ADC pins for pressure sensors
     adc_sensors = [ADC(Pin(channel)) for channel in PRESSURE_CHANNELS]
     for adc in adc_sensors:
-        adc.atten(ADC.ATTN_11DB)
+        adc.atten(ADC.ATTN_0DB)
         adc.width(ADC.WIDTH_12BIT)
 
     # Set up flow sensor pins and interrupt handlers
@@ -110,6 +137,14 @@ def setup():
 
     # Set LED pin as output
     led = Pin(config.led_pin, Pin.OUT)
+    
+    # Blink LED while waiting for WiFi connection
+    connect_wifi()
+    for _ in range(5):
+        led.on()
+        utime.sleep_ms(500)
+        led.off()
+        utime.sleep_ms(500)
 
     # Set relay pin as output
     relay = Pin(config.relay_pin, Pin.OUT)
@@ -158,14 +193,17 @@ def main():
     
     wlan = connect_wifi()
     mqtt_client = connect_mqtt()
+    
+    if mqtt_client is None:
+        print("MQTT connection failed. Measurements will be taken, but data won't be sent to MQTT.")
 
     # Constants for offsets
-    OFFSETS = [0.5089208, 0.5045054, 0.5078181, 0.5000765, 0.4956329]
+    OFFSETS = [0.4829402, 0.4843519, 0.4907008, 0.4871744, 0.4762344]
 
     # Variables to keep the lowest voltage measured from each pressure sensor
     lowest_voltages = [1] * 5
 
-    calibration_factors = [1.45, 1.0, 1.0, 1.0, 1.0]  # Calibration factors for flow sensors
+    calibration_factors = [63.3, 63.3, 63.3, 63.3, 63.3]  # Calibration factors for flow sensors
     total_liters = [0.0] * 5  # Amount of water that went by each flow sensor
 
     print("Main running.")
@@ -196,9 +234,11 @@ def main():
                 for i, rate in enumerate(flow_rates):
                     print(f"Flow Sensor {i + 1}: Flow Rate: {rate} L/min, Total Liters: {total_liters_accumulated[i]} L")
                     
-                    # Publish flow data to MQTT
-                    mqtt_data = f"Flow Sensor {i + 1}: Flow Rate: {rate} L/min, Total Liters: {total_liters_accumulated[i]} L"
-                    publish_mqtt(mqtt_client, MQTT_TOPIC_FLOW, mqtt_data)
+                    # Publish flow data to MQTT if the client is available
+                    if mqtt_client:
+                        mqtt_data = f"Flow Sensor {i + 1}: Flow Rate: {rate} L/min, Total Liters: {total_liters_accumulated[i]} L"
+                        publish_mqtt(mqtt_client, MQTT_TOPIC_FLOW, mqtt_data)
+
                     
                 print(" ")
 
@@ -206,6 +246,7 @@ def main():
                 for i, adc_sensor in enumerate(adc_sensors):
                     # Perform multisampling and calculate voltage value
                     average_adc_value = multisample_adc(adc_sensor)
+#                      print("abg value: ", average_adc_value)
                     voltage_value = regress(average_adc_value, PRESSURE_COEFFICIENTS)
 
                     # Update lowest voltage
@@ -223,12 +264,15 @@ def main():
                 for i in range(len(adc_sensors)):
                     print(f"Pressure Sensor {i + 1}: Expected Voltage: {expected_voltages[i]}, Lowest Voltage: {lowest_voltages_accumulated[i]}, Calculated Pressure: {pressures[i]}")
                     
-                    # Publish pressure data to MQTT
-                    mqtt_data = f"Pressure Sensor {i + 1}: Expected Voltage: {expected_voltages[i]}, Lowest Voltage: {lowest_voltages_accumulated[i]}, Calculated Pressure: {pressures[i]}"
-                    publish_mqtt(mqtt_client, MQTT_TOPIC_PRESSURE, mqtt_data)
+                    # Publish pressure data to MQTT if the client is available
+                    if mqtt_client:
+                        mqtt_data = f"Pressure Sensor {i + 1}: Expected Voltage: {expected_voltages[i]}, Lowest Voltage: {lowest_voltages_accumulated[i]}, Calculated Pressure: {pressures[i]}"
+                        publish_mqtt(mqtt_client, MQTT_TOPIC_PRESSURE, mqtt_data)
+               
                 print(" ")
 
 # Run the main function if this script is executed directly
 if __name__ == "__main__":
     setup()
     main()
+
