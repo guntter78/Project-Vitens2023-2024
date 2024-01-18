@@ -23,8 +23,8 @@ def insert_dummy_data(conn):
         cur = conn.cursor()
 
         level_data = [
-            ('layer 0', 'this is the bottom layer'),
-            ('layer 1','this is the top layer'),
+            ('0', 'Layer 0'),
+            ('1','Layer 1'),
         ]
         cur.executemany("INSERT INTO level (level_id, description) VALUES (%s, %s);", level_data)
 
@@ -35,8 +35,8 @@ def insert_dummy_data(conn):
 
 
         sensor_data = [
-            (1, 'flow', 'this is the most right flow sensor','layer 1'),
-            (2, 'pressure', 'this is the most left flow sensor','layer 0'),
+            (1, 'flow', 'this is the most right flow sensor','1'),
+            (2, 'pressure', 'this is the most left flow sensor','0'),
         ]
         cur.executemany(
             "INSERT INTO sensor (sensor_id, sensor_type, description, level_id) VALUES (%s, %s, %s, %s);",
