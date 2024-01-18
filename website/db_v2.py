@@ -42,7 +42,7 @@ def create_tables():
 
     cur.execute('''
         CREATE TABLE level (
-            level_id VARCHAR(20) PRIMARY KEY,
+            level_id INTEGER PRIMARY KEY,
             description VARCHAR(255)
         )
     ''')
@@ -59,7 +59,7 @@ def create_tables():
             sensor_id SERIAL PRIMARY KEY,
             sensor_type VARCHAR(255),
             description VARCHAR(255),
-            level_id VARCHAR(255) REFERENCES level(level_id)
+            level_id INTEGER REFERENCES level(level_id)
         )
     ''')
 
