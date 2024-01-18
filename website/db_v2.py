@@ -42,14 +42,14 @@ def create_tables():
 
     cur.execute('''
         CREATE TABLE level (
-            level_id INTEGER PRIMARY KEY,
+            level_id SERIAL PRIMARY KEY,
             description VARCHAR(255)
         )
     ''')
 
     cur.execute('''
         CREATE TABLE malfunction (
-            mal_code INTEGER PRIMARY KEY,
+            mal_code SERIAL PRIMARY KEY,
             description VARCHAR(255)
         )
     ''')
