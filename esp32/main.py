@@ -32,11 +32,11 @@ PRESSURE_COEFFICIENTS = [
 
 
 # WiFi credentials
-WIFI_SSID = 'vitens-wifi-1'
+WIFI_SSID = 'vitens-rpi-ap'
 WIFI_PASSWORD = 'vitensproject'
 
 # MQTT broker information
-MQTT_BROKER = '192.168.1.1'
+MQTT_BROKER = '192.168.2.1'
 MQTT_PORT = 1883
 MQTT_TOPIC_FLOW = 'flow_data'
 MQTT_TOPIC_PRESSURE = 'pressure_data'
