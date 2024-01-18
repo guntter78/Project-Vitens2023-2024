@@ -55,8 +55,41 @@ iface wlan0 inet dhcp
 wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
 ```
 
+## Setup USB Wi-Fi access point if it's rested
+First install the correct packages:
+```
+sudo install hostapd
+```
+```
+sudo install dnsmasq
+```
+
+Now edit the DNSmasq. DNSmasq is a network service that provides DNS, DHCP and router advertisement.
+Put this in the DNSmasq for a configured DHCP:
+```
+interface=wlan1
+dhcp-range=192.168.2.2,192.168.2.254,24h
+domain=wifi
+```
+Add the access point credentials in the Hostapd services, it should be made in the /etc/hostapd/hostapd.conf file.
+```
+interface=wlan1
+driver=nl80211
+ssid=vitens-rpi-ap
+hw_mode=g
+channel=7
+wmm_enabled=0
+macaddr_acl=0
+auth_algs=1
+ignore_broadcast_ssid=0
+wpa=2
+wpa_passphrase=vitensproject
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=TKIP
+rsn_pairwise=CCMP
+```
 Then, input the credentials into the 'wpa_supplicant.conf' file.
-It's necessary to have your hotspot on your laptop or wifi enabled (who are already imported in the 'wpa_supplicant.conf' file, because the AP of the RPi won't work when there is no connection
+It's necessary to have your hotspot on your laptop or Wi-Fi enabled (who are already imported in the 'wpa_supplicant.conf' file because the AP of the RPi won't work when there is not connection with the Wi-fi or the
 ```
 network={
    ssid="vitens-hotspot"
@@ -76,7 +109,7 @@ network={
    psk="Wi-fi password"
 }
 ```
-The second Wi-Fi dongle has an access point enabled, allowing you to connect to the Wi-Fi. The credentials for this access point are:
+The second Wi-Fi dongle has an access point enabled, allowing you to connect to the Wi-Fi. The credentials for this access point are if the access point is not configured go ## Setup USB Wi-Fi access point if it's reset:
 ```
 ssid = vitens-rpi-ap
 wpa_passphrase = vitensproject
@@ -98,7 +131,6 @@ wpa_key_mgmt=WPA-PSK
 wpa_pairwise=TKIP
 rsn_pairwise=CCMP
 ```
-
 Additionally, there is a 'net.rules' file where each dongle has its own set of rules to adhere to. For instance, 'wlan0' always has the MAC address '40:ed:00:b8:46:1b,' and 'wlan1' is assigned '66:49:b5:ae:1a:08.' This ensures that even if the dongles are removed and reinserted in a different order, they continue to serve their intended purposes. The set of rules can be found in the '/etc/udev/rules.d/70-persistent-net.rules' file.
 ```
 SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="40:ed:00:b8:46:1b", NAME="wlan0"
@@ -106,37 +138,4 @@ SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="66:49:b5:ae:1a:08", NAME="wlan1
 ```
 
 
-## Setup USB Wi-Fi access point if its reseted
-First install the correct packages:
-```
-sudo install hostapd
-```
-```
-sudo install dnsmasq
-```
-
-Now edit the DNSmasq. DNSmasq is a network service that provides DNS, DHCP and router advertisement.
-Put this in the dnsmasq for an configured dhcp:
-```
-interface=wlan1
-dhcp-range=192.168.2.2,192.168.2.254,24h
-domain=wifi
-
-Add the access point credentials in the hostapd services, it should be made in the /etc/hostapd/hostapd.conf file.
-```
-interface=wlan1
-driver=nl80211
-ssid=vitens-rpi-ap
-hw_mode=g
-channel=7
-wmm_enabled=0
-macaddr_acl=0
-auth_algs=1
-ignore_broadcast_ssid=0
-wpa=2
-wpa_passphrase=vitensproject
-wpa_key_mgmt=WPA-PSK
-wpa_pairwise=TKIP
-rsn_pairwise=CCMP
-```
 
