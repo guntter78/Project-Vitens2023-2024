@@ -54,6 +54,7 @@ sleep 2
 pip install Flask
 pip install psycopg2-binary
 pip install psycopg2
+python -c "import psycopg2"
 
 echo install MQTT
 pip install paho-mqtt
@@ -77,7 +78,7 @@ sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs
 wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 sudo apt update
 sudo apt-get -y install postgresql
-pip install psycopg2-binary
+
 sudo -u postgres psql -c "CREATE USER vitens WITH PASSWORD 'project';"
 sudo -u postgres psql -c  "ALTER USER vitens CREATEDB;" 
 
