@@ -34,16 +34,22 @@ def create_tables():
 
     cur = conn.cursor()
 
-    # Drop the existing tables if they exist
     cur.execute('DROP TABLE IF EXISTS flows CASCADE')
     cur.execute('DROP TABLE IF EXISTS pressure CASCADE')
     cur.execute('DROP TABLE IF EXISTS sensor CASCADE')
     cur.execute('DROP TABLE IF EXISTS level CASCADE')
+    cur.execute('DROP TABLE IF EXISTS malfunction CASCADE')
 
-    # Create tables 'level', 'sensor', 'flows', and 'pressure'
     cur.execute('''
         CREATE TABLE level (
             level_id VARCHAR(20) PRIMARY KEY,
+            description VARCHAR(255)
+        )
+    ''')
+
+    cur.execute('''
+        CREATE TABLE malfunction (
+            mal_code INTEGER PRIMARY KEY,
             description VARCHAR(255)
         )
     ''')
@@ -61,6 +67,7 @@ def create_tables():
         CREATE TABLE flows (
             id SERIAL PRIMARY KEY,
             sensor_id INTEGER REFERENCES sensor(sensor_id),
+            mal_code INTEGER REFERENCES malfunction(mal_code),
             flowrate NUMERIC,
             cons_amount NUMERIC,
             timestamp TIMESTAMP
@@ -71,18 +78,17 @@ def create_tables():
         CREATE TABLE pressure (
             id SERIAL PRIMARY KEY,
             sensor_id INTEGER REFERENCES sensor(sensor_id),
+            mal_code INTEGER REFERENCES malfunction(mal_code),
             pressure NUMERIC,
             timestamp TIMESTAMP
         )
     ''')
 
-    # Commit the changes and close the connection
     conn.commit()
     cur.close()
     conn.close()
     print("Tables created successfully.")
 
 
-# Start functions
 create_database("vitenswatersystem", "vitens", "project")
 create_tables()
