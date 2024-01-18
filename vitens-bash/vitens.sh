@@ -60,7 +60,15 @@ pip install paho-mqtt
 sudo install mosquitto
 sudo systemctl start mosquitto
 sudo systemctl enable mosquitto
+sudo apt-get install mosquitto-clients
 
+echo "Accessing and editing mosquitto.conf..."
+sudo nano /etc/mosquitto/mosquitto.conf
+echo "bind_address 127.0.0.1" | sudo tee -a /etc/mosquitto/mosquitto.conf
+echo "allow_anonymous true" | sudo tee -a /etc/mosquitto/mosquitto.conf
+echo "listener 1883" | sudo tee -a /etc/mosquitto/mosquitto.conf
+# Restart Mosquitto to apply the changes
+sudo systemctl restart mosquitto
 
 echo
 echo install POSTgreSQL.....:
