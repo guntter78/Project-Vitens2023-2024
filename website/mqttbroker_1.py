@@ -11,8 +11,8 @@ topic = "UART"
 # Database configuration
 db_config = {
     "dbname": "vitenswatersystem",
-    "user": "username",
-    "password": "password",
+    "user": "vitens",
+    "password": "project",
     "host": "localhost",
     "port": 5432,
 }
