@@ -57,6 +57,10 @@ pip install psycopg2
 
 echo install MQTT
 pip install paho-mqtt
+sudo install mosquitto
+sudo systemctl start mosquitto
+sudo systemctl enable mosquitto
+
 
 echo
 echo install POSTgreSQL.....:
