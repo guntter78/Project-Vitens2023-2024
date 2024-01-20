@@ -34,17 +34,17 @@ PRESSURE_COEFFICIENTS = [
 
 
 # WiFi credentials
-# WIFI_SSID = 'vitens-rpi-ap'
-# WIFI_PASSWORD = 'vitensproject'
-WIFI_SSID = 'freek'
-WIFI_PASSWORD = 'freekfreek'
+WIFI_SSID = 'vitens-rpi-ap'
+WIFI_PASSWORD = 'vitensproject'
+# WIFI_SSID = 'freek'
+# WIFI_PASSWORD = 'freekfreek'
 
 # MQTT broker information
 MQTT_BROKER = '192.168.2.1'
 MQTT_PORT = 1883
 MQTT_TOPIC_FLOW = 'flow_data'
 MQTT_TOPIC_PRESSURE = 'pressure_data'
-mqtt_client = None
+# mqtt_client = None
 # Initialize WiFi connection
 def connect_wifi():
     wlan = network.WLAN(network.STA_IF)
@@ -144,19 +144,13 @@ def setup():
     # Set LED pin as output
     led = Pin(config.led_pin, Pin.OUT)
     
-    # Set relay pin as output
-    relay = Pin(config.relay_pin, Pin.OUT)
-#     relay.value(0)  # Set relay pin HIGH
-    relay.off()
-
-    
-#     # Blink LED while waiting for WiFi connection
-#     connect_wifi()
-#     for _ in range(5):
-#         led.on()
-#         utime.sleep_ms(500)
-#         led.off()
-#         utime.sleep_ms(500)
+    # Blink LED while waiting for WiFi connection
+    connect_wifi()
+    for _ in range(5):
+        led.on()
+        utime.sleep_ms(500)
+        led.off()
+        utime.sleep_ms(500)
 
     
 # Function to handle polynomial regression calculation
@@ -175,9 +169,6 @@ def button_start_interrupt(pin):
         # Turn on the LED
         led.value(1)
 
-        # Activate the relay
-        relay.on()
-
         # Start reading the sensors
         is_reading_sensors = True
         print("Sensors reading started.")
@@ -189,9 +180,6 @@ def button_end_interrupt(pin):
         # Turn off the LED
         led.value(0)
 
-        # Deactivate the relay
-        relay.off()
-
         # Stop reading the sensors
         is_reading_sensors = False
         print("Sensors reading stopped.")
@@ -200,11 +188,11 @@ def button_end_interrupt(pin):
 def main():
     global is_reading_sensors, interval, previous_millis, flow_count
     
-#     wlan = connect_wifi()
-#     mqtt_client = connect_mqtt()
-#     
-#     if mqtt_client is None:
-#         print("MQTT connection failed. Measurements will be taken, but data won't be sent to MQTT.")
+    wlan = connect_wifi()
+    mqtt_client = connect_mqtt()
+    
+    if mqtt_client is None:
+        print("MQTT connection failed. Measurements will be taken, but data won't be sent to MQTT.")
 
     # Constants for offsets
     OFFSETS = [0.4829402, 0.4843519, 0.4907008, 0.4871744, 0.4762344]
@@ -243,9 +231,9 @@ def main():
                 # Print accumulated flow data for each flow sensor
                 for i, rate in enumerate(flow_rates):
                     flow_data = {
-                        "Sensor": i + 1,
+                        "Sensor": i + 6,
                         "Type": 0,
-                        "Layer": 1 if i <= 1 else 0,
+                        "Layer": 0,
                         "FlowRate": rate,
                         "TotalLiters": total_liters_accumulated[i]
                     }
@@ -281,9 +269,9 @@ def main():
                 # Print accumulated data for each pressure sensor
                 for i in range(len(adc_sensors)):
                     sensor_data = {
-                        "Sensor": i + 1,
+                        "Sensor": i + 6,
                         "Type": 1,
-                        "Layer": 1 if i <= 1 else 0,
+                        "Layer": 0,
                         "ExpectedVoltage": expected_voltages[i],
                         "LowestVoltage": lowest_voltages_accumulated[i],
                         "CalculatedPressure": pressures[i]
