@@ -58,7 +58,6 @@ def create_tables():
         CREATE TABLE sensor (
             sensor_id SERIAL PRIMARY KEY,
             sensor_type VARCHAR(255),
-            brand VARCHAR(255),
             description VARCHAR(255),
             level_id INTEGER REFERENCES level(level_id)
         )

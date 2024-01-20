@@ -35,11 +35,11 @@ def insert_dummy_data(conn):
 
 
         sensor_data = [
-            (1, 'flow','haljia', 'this is the most right flow sensor','1'),
-            (2, 'pressure','TTP', 'this is the most left flow sensor','0'),
+            (1, 'flow', 'this is the most right flow sensor','1'),
+            (2, 'pressure', 'this is the most left flow sensor','0'),
         ]
         cur.executemany(
-            "INSERT INTO sensor (sensor_id, sensor_type, brand, description, level_id) VALUES (%s, %s, %s, %s, %s);",
+            "INSERT INTO sensor (sensor_id, sensor_type, description, level_id) VALUES (%s, %s %s, %s);",
             sensor_data
         )
 
