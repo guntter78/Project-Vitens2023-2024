@@ -54,7 +54,27 @@ auto wlan0
 iface wlan0 inet dhcp
 wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
 ```
+Then, input the credentials into the 'wpa_supplicant.conf' file.
+It's necessary to have your hotspot on your laptop or Wi-Fi enabled (who are already imported in the 'wpa_supplicant.conf' file because the AP of the RPi won't work when there is not connection with the Wi-fi or the
+```
+network={
+   ssid="vitens-hotspot"
+   psk="vitensproject"
+}
+```
 
+If you use multiple Wi-Fi networks, you can also add more of them in the 'wpa_supplicant.conf' file.
+```
+network={
+   ssid="Wi-fi Name 1"
+   psk="Wi-fi password"
+}
+
+network={
+   ssid="Wi-fi Name 2"
+   psk="Wi-fi password"
+}
+```
 ## Setup USB Wi-Fi access point if it's reset
 First install the correct packages:
 ```
@@ -86,27 +106,6 @@ wpa_passphrase=vitensproject
 wpa_key_mgmt=WPA-PSK
 wpa_pairwise=TKIP
 rsn_pairwise=CCMP
-```
-Then, input the credentials into the 'wpa_supplicant.conf' file.
-It's necessary to have your hotspot on your laptop or Wi-Fi enabled (who are already imported in the 'wpa_supplicant.conf' file because the AP of the RPi won't work when there is not connection with the Wi-fi or the
-```
-network={
-   ssid="vitens-hotspot"
-   psk="vitensproject"
-}
-```
-
-If you use multiple Wi-Fi networks, you can also add more of them in the 'wpa_supplicant.conf' file.
-```
-network={
-   ssid="Wi-fi Name 1"
-   psk="Wi-fi password"
-}
-
-network={
-   ssid="Wi-fi Name 2"
-   psk="Wi-fi password"
-}
 ```
 The second Wi-Fi dongle has an access point enabled, allowing you to connect to the Wi-Fi. The credentials for this access point are if the access point is not configured go ## Setup USB Wi-Fi access point if it's reset:
 ```
