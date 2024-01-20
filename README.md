@@ -11,9 +11,7 @@ To connect to the RPI terminal.
 ```
 ssh vitensadmin@192.168.2.1 -p 25565
 password: vitensproject
-
-
-
+```
 
 ## Setup website
 To install the website, clone first this repository by using the command:
