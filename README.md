@@ -1,18 +1,18 @@
 # Welcome to the vitens project!
 
 ## Connect to the RaspBerrry Pi
-To connect to the RPI. You first to connect to the access point (Wi-Fi):
+To connect to the Raspberry Pi, you first need to connect to the access point (Wi-Fi):
 ```
 SSID: vitens-rpi-ap
 Pass: vitensproject
 ```
 
-To connect to the RPI terminal.
+To connect to the RPI ssh terminal.
 ```
 ssh vitensadmin@192.168.2.1 -p 25565
 password: vitensproject
 ```
-
+## If the Raspberry Pi is reset do this:
 ## Setup website
 To install the website, clone first this repository by using the command:
 ```
@@ -76,7 +76,6 @@ sudo install hostapd
 ```
 sudo install dnsmasq
 ```
-
 Now edit the DNSmasq. DNSmasq is a network service that provides DNS, DHCP and router advertisement.
 Put this in the DNSmasq for a configured DHCP:
 ```
