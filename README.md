@@ -1,5 +1,20 @@
 # Welcome to the vitens project!
 
+## Connect to the RaspBerrry Pi
+To connect to the RPI. You first to connect to the access point (Wi-Fi):
+```
+SSID: vitens-rpi-ap
+Pass: vitensproject
+```
+
+To connect to the RPI terminal.
+```
+ssh vitensadmin@192.168.2.1 -p 25565
+password: vitensproject
+
+
+
+
 ## Setup website
 To install the website, clone first this repository by using the command:
 ```
