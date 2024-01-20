@@ -53,16 +53,13 @@ def on_message(client, userdata, msg):
 
         # Check the topic to determine the type of data received
         if msg.topic == topic_pressure:
-            expected_voltage = sensor_data["ExpectedVoltage"]
-            lowest_voltage = sensor_data["LowestVoltage"]
             calculated_pressure = sensor_data["CalculatedPressure"]
 
             # Insert data into the pressure table
             cursor.execute("""
-            INSERT INTO pressure (sensor_id, mal_code, expected_voltage, 
-            lowest_voltage, calculated_pressure, timestamp, level_id) 
-            VALUES (%s, %s, %s, %s, %s, NOW(), %s)
-            """, (sensor_id, sensor_type, expected_voltage, lowest_voltage, calculated_pressure, layer))
+            INSERT INTO pressure (sensor_id, mal_code, calculated_pressure, timestamp, level_id) 
+            VALUES (%s, %s, %s, NOW(), %s)
+            """, (sensor_id, sensor_type, calculated_pressure, layer))
 
             logger.info("Pressure sensor data stored in the database")
 
@@ -72,8 +69,8 @@ def on_message(client, userdata, msg):
 
             # Insert data into the flow table
             cursor.execute("""
-            INSERT INTO flow (sensor_id, mal_code, flow_rate, consump_amount, 
-            timestamp, level_id) VALUES (%s, %s, %s, %s, NOW(), %s)
+            INSERT INTO flow (sensor_id, mal_code, flow_rate, consump_amount, timestamp, level_id) 
+            VALUES (%s, %s, %s, %s, NOW(), %s)
             """, (sensor_id, sensor_type, flow_rate, total_liters, layer))
 
             logger.info("Flow sensor data stored in the database")
