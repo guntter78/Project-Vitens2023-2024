@@ -13,19 +13,6 @@ ssh vitensadmin@192.168.2.1 -p 25565
 password: vitensproject
 ```
 ## If the Raspberry Pi is reset do this:
-## Setup website
-To install the website, clone first this repository by using the command:
-```
-git clone https://github.com/guntter78/Project-Vitens2023-2024.git
-```
-After installation, change your Linux directory to the 'Project-Vitens2023-2024' directory using the following command:
-```
-cd Project-Vitens2023-2024
-```
-Next, utilize the bash script to install all the required tools for running the website. Once you've executed this script, the website will start automatically. To stop the website, simply press Ctrl + C.
-```
-sudo bash vitens-bash/vitens.sh
-```
 
 ## Setup USB Wi-Fi dongle
 To install the USB WiFi dongle (TL-WN725N) on the Raspberry Pi, you need to clone the repository. Within this repository, you will find a driver designed for Linux systems
@@ -147,6 +134,19 @@ Additionally, there is a 'net.rules' file where each dongle has its own set of r
 ```
 SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="40:ed:00:b8:46:1b", NAME="wlan0"
 SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="66:49:b5:ae:1a:08", NAME="wlan1"
+```
+## Setup website
+To install the website, clone first this repository by using the command:
+```
+git clone https://github.com/guntter78/Project-Vitens2023-2024.git
+```
+After installation, change your Linux directory to the 'Project-Vitens2023-2024' directory using the following command:
+```
+cd Project-Vitens2023-2024
+```
+Next, utilize the bash script to install all the required tools for running the website. Once you've executed this script, the website will start automatically. To stop the website, simply press Ctrl + C.
+```
+sudo bash vitens-bash/vitens.sh
 ```
 
 
