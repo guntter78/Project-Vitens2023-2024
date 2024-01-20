@@ -68,7 +68,7 @@ iface wlan0 inet dhcp
 wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
 ```
 
-## Setup USB Wi-Fi access point if it's rested
+## Setup USB Wi-Fi access point if it's reset
 First install the correct packages:
 ```
 sudo install hostapd
