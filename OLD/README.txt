@@ -1,1 +1,0 @@
-In this map there some old documents during asemblying.
