@@ -7,7 +7,7 @@ import json
 
 # Global variables
 is_reading_sensors = False  # True when green button is pressed | False when red button is pressed
-interval = 1000  # Interval for measuring sensors
+interval = 5000  # Interval for measuring sensors
 previous_millis = 0  # Variable to measure at certain intervals
 
 # Constants for ADC channels
@@ -44,7 +44,7 @@ MQTT_BROKER = '192.168.2.1'
 MQTT_PORT = 1883
 MQTT_TOPIC_FLOW = 'flow_data'
 MQTT_TOPIC_PRESSURE = 'pressure_data'
-# mqtt_client = None
+mqtt_client = None
 # Initialize WiFi connection
 def connect_wifi():
     wlan = network.WLAN(network.STA_IF)
@@ -64,13 +64,14 @@ def connect_wifi():
 
         print('WiFi connected.')
         ip_address = wlan.ifconfig()[0]
-        print ("ip:", ip_address)
+        print("ip:", ip_address)
     return wlan
+
 
 # Initialize MQTT client
 def connect_mqtt():
     global led
-    
+
     led_blinking = True
     led_blink_interval = 500  # milliseconds
 
@@ -78,6 +79,7 @@ def connect_mqtt():
         client = MQTTClient('esp32', MQTT_BROKER, port=MQTT_PORT)
         client.connect()
         led_blinking = False  # Stop blinking when the connection is established
+        led.on()  # Turn on the LED when both WiFi and MQTT are connected
         return client
     except OSError as e:
         if led_blinking:
@@ -98,7 +100,7 @@ def publish_mqtt(client, topic, data):
     client.publish(topic, data)
 
 # Function to perform multisampling, exclude extreme values, and return the averaged ADC value
-def multisample_adc(adc, num_samples=32):
+def multisample_adc(adc, num_samples=20):
     values = []
 
     for _ in range(num_samples):
@@ -150,7 +152,7 @@ def setup():
     relay.off()
 
     
-#     # Blink LED while waiting for WiFi connection
+    # Blink LED while waiting for WiFi connection
     connect_wifi()
     for _ in range(5):
         led.on()
@@ -178,9 +180,16 @@ def button_start_interrupt(pin):
         # Activate the relay
         relay.on()
 
-        # Start reading the sensors
-        is_reading_sensors = True
-        print("Sensors reading started.")
+        # Wait for 5 seconds
+        for _ in range(50):
+            utime.sleep_ms(100)  # Sleep for 100 milliseconds
+
+        # Attempt to connect to WiFi and MQTT
+        wlan = connect_wifi()
+        mqtt_client = connect_mqtt()
+
+        if mqtt_client is None:
+            print("MQTT connection failed. Measurements will be taken, but data won't be sent to MQTT.")
 
 # Interrupt handler for the end button
 def button_end_interrupt(pin):
@@ -191,6 +200,9 @@ def button_end_interrupt(pin):
 
         # Deactivate the relay
         relay.off()
+        while pin.value() == 0:
+            time.sleep(0.1)  # Wait for the button to be released
+        time.sleep(0.2)  # Debounce delay
 
         # Stop reading the sensors
         is_reading_sensors = False
@@ -249,8 +261,8 @@ def main():
                         "FlowRate": rate,
                         "TotalLiters": total_liters_accumulated[i]
                     }
-
-                    print(f"Sensor: {flow_data['Sensor']}, Type: {flow_data['Type']}, Layer: {flow_data['Layer']}, Flow Rate: {flow_data['FlowRate']} L/min, Total Liters: {flow_data['TotalLiters']} L")
+                    print(json.dumps(flow_data))
+#                     print(f"Sensor: {flow_data['Sensor']}, Type: {flow_data['Type']}, Layer: {flow_data['Layer']}, Flow Rate: {flow_data['FlowRate']} L/min, Total Liters: {flow_data['TotalLiters']} L")
 
                     # Publish flow data to MQTT if the client is available
                     if mqtt_client:
@@ -288,8 +300,8 @@ def main():
                         "LowestVoltage": lowest_voltages_accumulated[i],
                         "CalculatedPressure": pressures[i]
                     }
-
-                    print(f"Sensor: {sensor_data['Sensor']}, Type: {sensor_data['Type']}, Layer: {sensor_data['Layer']}, Expected Voltage: {sensor_data['ExpectedVoltage']}, Lowest Voltage: {sensor_data['LowestVoltage']}, Calculated Pressure: {sensor_data['CalculatedPressure']}")
+                    print(json.dumps(sensor_data))
+#                     print(f"Sensor: {sensor_data['Sensor']}, Type: {sensor_data['Type']}, Layer: {sensor_data['Layer']}, Expected Voltage: {sensor_data['ExpectedVoltage']}, Lowest Voltage: {sensor_data['LowestVoltage']}, Calculated Pressure: {sensor_data['CalculatedPressure']}")
 
                     # Publish pressure data to MQTT if the client is available
                     if mqtt_client:
