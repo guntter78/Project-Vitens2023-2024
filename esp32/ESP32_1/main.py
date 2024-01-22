@@ -182,6 +182,10 @@ def button_start_interrupt(pin):
         if mqtt_client is None:
             print("MQTT connection failed. Measurements will be taken, but data won't be sent to MQTT.")
 
+        # Start reading the sensors
+        is_reading_sensors = True
+        print("Sensors reading started.")
+
 # Interrupt handler for the end button
 def button_end_interrupt(pin):
     global is_reading_sensors
@@ -202,12 +206,6 @@ def button_end_interrupt(pin):
 # Main function
 def main():
     global is_reading_sensors, interval, previous_millis, flow_count
-    
-    wlan = connect_wifi()
-    mqtt_client = connect_mqtt()
-    
-    if mqtt_client is None:
-        print("MQTT connection failed. Measurements will be taken, but data won't be sent to MQTT.")
 
     # Constants for offsets
     OFFSETS = [0.4829402, 0.4843519, 0.4907008, 0.4871744, 0.4762344]

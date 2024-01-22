@@ -174,6 +174,10 @@ def button_start_interrupt(pin):
         if mqtt_client is None:
             print("MQTT connection failed. Measurements will be taken, but data won't be sent to MQTT.")
 
+        # Start reading the sensors
+        is_reading_sensors = True
+        print("Sensors reading started.")
+
 # Interrupt handler for the end button
 def button_end_interrupt(pin):
     global is_reading_sensors
