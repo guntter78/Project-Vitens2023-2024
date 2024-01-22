@@ -44,7 +44,7 @@ MQTT_BROKER = '192.168.2.1'
 MQTT_PORT = 1883
 MQTT_TOPIC_FLOW = 'flow_data'
 MQTT_TOPIC_PRESSURE = 'pressure_data'
-mqtt_client = None
+# mqtt_client = None
 # Initialize WiFi connection
 def connect_wifi():
     wlan = network.WLAN(network.STA_IF)
@@ -150,15 +150,6 @@ def setup():
     relay = Pin(config.relay_pin, Pin.OUT)
 #     relay.value(0)  # Set relay pin HIGH
     relay.off()
-
-    
-    # Blink LED while waiting for WiFi connection
-    connect_wifi()
-    for _ in range(5):
-        led.on()
-        utime.sleep_ms(500)
-        led.off()
-        utime.sleep_ms(500)
 
     
 # Function to handle polynomial regression calculation
