@@ -124,7 +124,7 @@ def flow_sensor_interrupt(pin, sensor_index):
 
 # Function to initialize hardware components
 def setup():
-    global led, adc_sensors, is_reading_sensors
+    global led, adc_sensors, is_reading_sensors, relay
 
     # Set button pins as inputs with interrupts
     button_start = Pin(config.button_start_pin, Pin.IN, Pin.PULL_UP)
@@ -147,6 +147,11 @@ def setup():
     # Set LED pin as output
     led = Pin(config.led_pin, Pin.OUT)
 
+    # Set relay pin as output
+    relay = Pin(config.relay_pin, Pin.OUT)
+#     relay.value(0)  # Set relay pin HIGH
+    relay.off()
+
     
 # Function to handle polynomial regression calculation
 def regress(x, coefficients):
@@ -163,6 +168,9 @@ def button_start_interrupt(pin):
     if not is_reading_sensors:
         # Turn on the LED
         led.value(1)
+
+         # Activate the relay
+        relay.on()
 
         # Wait for 5 seconds
         for _ in range(50):
@@ -186,6 +194,8 @@ def button_end_interrupt(pin):
         # Turn off the LED
         led.value(0)
 
+        # Deactivate the relay
+        relay.off()
         while pin.value() == 0:
             time.sleep(0.1)  # Wait for the button to be released
         time.sleep(0.2)  # Debounce delay
@@ -235,9 +245,9 @@ def main():
                 # Print accumulated flow data for each flow sensor
                 for i, rate in enumerate(flow_rates):
                     flow_data = {
-                        "Sensor": i + 6,
+                        "Sensor": i + 1,
                         "Type": 0,
-                        "Layer": 0,
+                        "Layer": 1 if i <= 1 else 0,
                         "FlowRate": rate,
                         "TotalLiters": total_liters_accumulated[i]
                     }
@@ -273,9 +283,9 @@ def main():
                 # Print accumulated data for each pressure sensor
                 for i in range(len(adc_sensors)):
                     sensor_data = {
-                        "Sensor": i + 6,
+                        "Sensor": i + 1,
                         "Type": 1,
-                        "Layer": 0,
+                        "Layer": 1 if i <= 1 else 0,
                         "ExpectedVoltage": expected_voltages[i],
                         "LowestVoltage": lowest_voltages_accumulated[i],
                         "CalculatedPressure": pressures[i]

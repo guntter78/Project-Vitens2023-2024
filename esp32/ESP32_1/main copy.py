@@ -124,7 +124,7 @@ def flow_sensor_interrupt(pin, sensor_index):
 
 # Function to initialize hardware components
 def setup():
-    global led, adc_sensors, is_reading_sensors
+    global led, adc_sensors, is_reading_sensors, relay
 
     # Set button pins as inputs with interrupts
     button_start = Pin(config.button_start_pin, Pin.IN, Pin.PULL_UP)
@@ -147,6 +147,11 @@ def setup():
     # Set LED pin as output
     led = Pin(config.led_pin, Pin.OUT)
 
+    # Set relay pin as output
+    relay = Pin(config.relay_pin, Pin.OUT)
+#     relay.value(0)  # Set relay pin HIGH
+    relay.off()
+
     
 # Function to handle polynomial regression calculation
 def regress(x, coefficients):
@@ -164,6 +169,9 @@ def button_start_interrupt(pin):
         # Turn on the LED
         led.value(1)
 
+        # Activate the relay
+        relay.on()
+
         # Wait for 5 seconds
         for _ in range(50):
             utime.sleep_ms(100)  # Sleep for 100 milliseconds
@@ -175,9 +183,7 @@ def button_start_interrupt(pin):
         if mqtt_client is None:
             print("MQTT connection failed. Measurements will be taken, but data won't be sent to MQTT.")
 
-        # Start reading the sensors
         is_reading_sensors = True
-        print("Sensors reading started.")
 
 # Interrupt handler for the end button
 def button_end_interrupt(pin):
@@ -186,6 +192,8 @@ def button_end_interrupt(pin):
         # Turn off the LED
         led.value(0)
 
+        # Deactivate the relay
+        relay.off()
         while pin.value() == 0:
             time.sleep(0.1)  # Wait for the button to be released
         time.sleep(0.2)  # Debounce delay
@@ -224,11 +232,11 @@ def main():
 
                     # Append flow sensor data to the array
                     flow_data = {
-                        "Sensor": i + 6,
+                        "Sensor": i + 1,
                         "Type": 0,
-                        "Layer": 0,
-                        "FlowRate": flow_rate,
-                        "TotalLiters": total_liters[i]
+                        "Layer": 1 if i <= 1 else 0,
+                        "FlowRate": round(flow_rate,2),
+                        "TotalLiters": round(total_liters[i],4)
                     }
                     sensor_data_array.append(flow_data)
                     flow_count[i] = 0  # Reset flow counter for the next interval
@@ -243,27 +251,29 @@ def main():
                     lowest_voltages[i] = min(lowest_voltages[i], voltage_value)
 
                     # Calculate pressure
-                    pressure = (voltage_value - OFFSETS[i]) * 400  # 250 for measuring till 1Mpa | 400 for measurements till 1.6Mpa
+                    pressure = ((voltage_value - OFFSETS[i]) * 400 / 100)  # 250 for measuring till 1Mpa | 400 for measurements till 1.6Mpa
 
                     # Append pressure sensor data to the array
                     pressure_data = {
-                        "Sensor": i + 6,
+                        "Sensor": i + 1,
                         "Type": 1,
-                        "Layer": 0,
-                        "ExpectedVoltage": voltage_value,
-                        "LowestVoltage": lowest_voltages[i],
-                        "CalculatedPressure": pressure
+                        "Layer": 1 if i <= 1 else 0,
+                        "CalculatedPressure": round(pressure,2)
                     }
                     sensor_data_array.append(pressure_data)
 
+                    # Print lowest_voltages
+                    print(lowest_voltages)
+
                 # Print accumulated data for each sensor
-                for sensor_data in sensor_data_array:
-                    print(json.dumps(sensor_data))
+                # for sensor_data in sensor_data_array:
+                    # print(json.dumps(sensor_data))
 
                     # Publish sensor data to MQTT if the client is available
-                    if mqtt_client:
-                        mqtt_data = json.dumps(sensor_data)
-                        publish_mqtt(mqtt_client, MQTT_TOPIC_PRESSURE, mqtt_data)
+                if mqtt_client:
+                    mqtt_data = json.dumps(sensor_data_array)
+                    publish_mqtt(mqtt_client, MQTT_TOPIC_PRESSURE, mqtt_data)
+                    print("MQTT Message has been send")
 
                 print(" ")
 
