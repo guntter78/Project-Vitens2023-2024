@@ -135,6 +135,10 @@ SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="40:ed:00:b8:46:1b", NAME="wlan0
 SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="66:49:b5:ae:1a:08", NAME="wlan1"
 ```
 ## Setup website
+Before copying the project, please ensure that Git is installed on your system. If it is not installed, use the following command:
+```
+sudo apt install git
+```
 To install the website, clone first this repository by using the command:
 ```
 git clone https://github.com/guntter78/Project-Vitens2023-2024.git
