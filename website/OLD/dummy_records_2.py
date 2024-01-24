@@ -35,12 +35,11 @@ def insert_dummy_data(conn):
 
 
         sensor_data = [
-            (1, 'flow', 'flow sensor', '1'),
-            (2, 'pressure', 'pressure sensor', '0'),
+            (1, 'flow', 'this is the most right flow sensor','1'),
+            (2, 'pressure', 'this is the most left flow sensor','0'),
         ]
-
         cur.executemany(
-            "INSERT INTO sensor (sensor_id, sensor_type, description, level_id) VALUES (%s, %s, %s, %s);",
+            "INSERT INTO sensor (sensor_id, sensor_type, description, level_id) VALUES (%s, %s %s, %s);",
             sensor_data
         )
 
@@ -56,9 +55,9 @@ def insert_dummy_data(conn):
 
         flow_data = [
             (1, 2, 2, 100.5, 200.5, '2023-07-15 08:32:45' ),
-            (2, 1, 3, 75.3, 150.3, '2023-06-06 03:36:46'),
+            (2, 1, 3, 75.3, 150.3, '2023-06-6 03:36:46'),
         ]
-
+        
         cur.executemany(
             "INSERT INTO flows(id, sensor_id, mal_code, flowrate, cons_amount, timestamp) VALUES (%s, %s, %s, %s, %s, %s);", flow_data
         )
