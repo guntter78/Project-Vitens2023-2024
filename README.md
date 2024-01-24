@@ -137,7 +137,7 @@ SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="66:49:b5:ae:1a:08", NAME="wlan1
 ## Setup website
 Before copying the project, please ensure that Git is installed on your system. If it is not installed, use the following command:
 ```
-sudo apt install git
+sudo apt install git -y
 ```
 To install the website, clone first this repository by using the command:
 ```
