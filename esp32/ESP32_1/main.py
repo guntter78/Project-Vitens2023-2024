@@ -7,7 +7,7 @@ import json
 
 # Global variables
 is_reading_sensors = False  # True when green button is pressed | False when red button is pressed
-interval = 5000  # Interval for measuring sensors
+interval = 60000  # Interval for measuring sensors
 previous_millis = 0  # Variable to measure at certain intervals
 
 # Constants for ADC channels
@@ -19,16 +19,23 @@ FLOW_CHANNELS = [config.flow_1, config.flow_2, config.flow_3, config.flow_4, con
 flow_count = [0] * 5  # Counters for flow sensors
 
 # Coefficients for retrieving correct voltage from ADC conversion
+# Mode: reversed (x,y = y,x) analysis
+# Polynomial degree 10, 17 x,y data pairs.
+# Correlation coefficient = 0.9990499972162807
+# Standard error = 0.01563540511290031
+
 PRESSURE_COEFFICIENTS = [
-     4.3220814251979441e-002,
-     8.4389462175653155e-004,
-    -1.5602058901130114e-006,
-     2.2509419544953348e-009,
-    -1.7566834607660054e-012,
-     7.8573137930648812e-016,
-    -2.0129813454437095e-019,
-     2.7453128579968508e-023,
-    -1.5445682269067323e-027
+     3.7725801128592376e-002,
+     1.8018167916213183e-003,
+    -8.2955008918501267e-006,
+     2.0573888462170544e-008,
+    -2.7685403110795660e-011,
+     2.2302079181463136e-014,
+    -1.1246007953532219e-017,
+     3.5795508962725756e-021,
+    -6.9849404159881848e-025,
+     7.6279267453835264e-029,
+    -3.5696237568562081e-033
 ]
 
 
@@ -169,13 +176,6 @@ def button_start_interrupt(pin):
         # Turn on the LED
         led.value(1)
 
-         # Activate the relay
-        relay.on()
-
-        # Wait for 5 seconds
-        for _ in range(50):
-            utime.sleep_ms(100)  # Sleep for 100 milliseconds
-
         # Attempt to connect to WiFi and MQTT
         wlan = connect_wifi()
         mqtt_client = connect_mqtt()
@@ -194,12 +194,6 @@ def button_end_interrupt(pin):
         # Turn off the LED
         led.value(0)
 
-        # Deactivate the relay
-        relay.off()
-        while pin.value() == 0:
-            time.sleep(0.1)  # Wait for the button to be released
-        time.sleep(0.2)  # Debounce delay
-
         # Stop reading the sensors
         is_reading_sensors = False
         print("Sensors reading stopped.")
@@ -209,12 +203,12 @@ def main():
     global is_reading_sensors, interval, previous_millis, flow_count
 
     # Constants for offsets
-    OFFSETS = [0.4829402, 0.4843519, 0.4907008, 0.4871744, 0.4762344]
+    OFFSETS = [0.4808229, 0.5012701, 0.5012701, 0.5019741, 0.4963401]
 
     # Variables to keep the lowest voltage measured from each pressure sensor
     lowest_voltages = [1] * 5
 
-    calibration_factors = [63.3, 63.3, 63.3, 63.3, 63.3]  # Calibration factors for flow sensors
+    calibration_factors = [63.3, 65.68, 64.05, 66.84, 64.06]  # Calibration factors for flow sensors
     total_liters = [0.0] * 5  # Amount of water that went by each flow sensor
 
     print("Main running.")
@@ -235,9 +229,10 @@ def main():
 
                 # Calculate flow rates and total liters for each flow sensor
                 for i, count in enumerate(flow_count):
-                    flow_rate = (count / calibration_factors[i]) * (60000.0 / interval)
-                    total_liters[i] += (flow_rate / 60.0)
+                    flow_rate = (count / calibration_factors[i]) * (60000 / interval)
+                    total_liters[i] += (flow_rate / (60000 / interval))
                     flow_rates.append(flow_rate)
+                    print(count)
                     total_liters_accumulated.append(total_liters[i])
                     flow_count[i] = 0  # Reset flow counter for the next interval
 
@@ -251,7 +246,7 @@ def main():
                         "FlowRate": rate,
                         "TotalLiters": total_liters_accumulated[i]
                     }
-                    print(json.dumps(flow_data))
+#                     print(json.dumps(flow_data))
 #                     print(f"Sensor: {flow_data['Sensor']}, Type: {flow_data['Type']}, Layer: {flow_data['Layer']}, Flow Rate: {flow_data['FlowRate']} L/min, Total Liters: {flow_data['TotalLiters']} L")
 
                     # Publish flow data to MQTT if the client is available
@@ -290,7 +285,7 @@ def main():
                         "LowestVoltage": lowest_voltages_accumulated[i],
                         "CalculatedPressure": pressures[i]
                     }
-                    print(json.dumps(sensor_data))
+#                     print(json.dumps(sensor_data))
 #                     print(f"Sensor: {sensor_data['Sensor']}, Type: {sensor_data['Type']}, Layer: {sensor_data['Layer']}, Expected Voltage: {sensor_data['ExpectedVoltage']}, Lowest Voltage: {sensor_data['LowestVoltage']}, Calculated Pressure: {sensor_data['CalculatedPressure']}")
 
                     # Publish pressure data to MQTT if the client is available
@@ -304,4 +299,5 @@ def main():
 if __name__ == "__main__":
     setup()
     main()
+
 
