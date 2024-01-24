@@ -18,26 +18,25 @@ FLOW_CHANNELS = [config.flow_1, config.flow_2, config.flow_3, config.flow_4, con
 
 flow_count = [0] * 5  # Counters for flow sensors
 
-# Coefficients for retrieving correct voltage from ADC conversion
 # Mode: reversed (x,y = y,x) analysis
-# Polynomial degree 10, 17 x,y data pairs.
-# Correlation coefficient = 0.9990499972162807
-# Standard error = 0.01563540511290031
+# Polynomial degree 9, 17 x,y data pairs.
+# Correlation coefficient = 0.9989626481959121
+# Standard error = 0.01633840782839662
+
+# Output form: Python function:
 
 PRESSURE_COEFFICIENTS = [
-     3.7725801128592376e-002,
-     1.8018167916213183e-003,
-    -8.2955008918501267e-006,
-     2.0573888462170544e-008,
-    -2.7685403110795660e-011,
-     2.2302079181463136e-014,
-    -1.1246007953532219e-017,
-     3.5795508962725756e-021,
-    -6.9849404159881848e-025,
-     7.6279267453835264e-029,
-    -3.5696237568562081e-033
+     4.1430779062682901e-002,
+     1.1267234164934186e-003,
+    -3.3448588314172105e-006,
+     6.4945160901450140e-009,
+    -6.8647362384291617e-012,
+     4.2762572403803007e-015,
+    -1.6136004263220210e-018,
+     3.6240521930679960e-022,
+    -4.4559540640740166e-026,
+     2.3084870973993295e-030
 ]
-
 
 
 # WiFi credentials
