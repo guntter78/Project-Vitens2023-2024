@@ -1,0 +1,34 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>malfunction</title>
+</head>
+<body>
+    <h1>Malfunctions</h1>
+    <form>
+        <label for="sensor" >choose sensor</label> 
+        
+        <select name="sensors" id="sensor">
+            <option value="">select sensor</option>
+            {% for row in data %}
+            <option value="sensor 1">{{row[0]}}</option>
+            {% endfor %}
+        </select>
+        
+        <br><br>
+        <label>add malfunction:</label>
+
+        <select name="malfunction">
+            <option value="">select malfunction</option>
+            {% for row in data2 %}
+            <option value="calbi">{{row[0]}}</option>
+            {% endfor %}
+        </select>
+
+        <input type="text" id="test" placeholder="add %">
+        <input type="submit" value="submit">
+    </form>
+    
+</body>
+</html>
