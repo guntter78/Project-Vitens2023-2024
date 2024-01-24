@@ -145,7 +145,7 @@ git clone https://github.com/guntter78/Project-Vitens2023-2024.git
 ```
 After installation, change your Linux directory to the 'Project-Vitens2023-2024' directory using the following command:
 ```
-cd Project-Vitens2023-2024\vitens-bash
+cd Project-Vitens2023-2024/vitens-bash
 ```
 Next, utilize the bash script to install all the required tools for running the website. Once you've executed this script, the website will start automatically. To stop the website, simply press Ctrl + C.
 ```
