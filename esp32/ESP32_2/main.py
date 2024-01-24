@@ -18,19 +18,27 @@ FLOW_CHANNELS = [config.flow_1, config.flow_2, config.flow_3, config.flow_4, con
 
 flow_count = [0] * 5  # Counters for flow sensors
 
+mqtt_needed = False
+
+# Mode: reversed (x,y = y,x) analysis
+# Polynomial degree 10, 19 x,y data pairs.
+# Correlation coefficient = 0.9999804013792513
+# Standard error = 0.0023917281938123478
+
 # Coefficients for retrieving correct voltage from ADC conversion
 PRESSURE_COEFFICIENTS = [
-     4.3220814251979441e-002,
-     8.4389462175653155e-004,
-    -1.5602058901130114e-006,
-     2.2509419544953348e-009,
-    -1.7566834607660054e-012,
-     7.8573137930648812e-016,
-    -2.0129813454437095e-019,
-     2.7453128579968508e-023,
-    -1.5445682269067323e-027
+     1.0544108430606616e-001,
+     5.9296048292552283e-004,
+    -1.1723312877998637e-006,
+     2.7985351784363641e-009,
+    -3.6955651458985855e-012,
+     2.9443605256591677e-015,
+    -1.4730705297682472e-018,
+     4.6568340199234337e-022,
+    -9.0262054834936031e-026,
+     9.7878511221570136e-030,
+    -4.5459995955173341e-034
 ]
-
 
 
 # WiFi credentials
@@ -76,7 +84,7 @@ def connect_mqtt():
     led_blink_interval = 500  # milliseconds
 
     try:
-        client = MQTTClient('esp32', MQTT_BROKER, port=MQTT_PORT)
+        client = MQTTClient('esp32_2', MQTT_BROKER, port=MQTT_PORT)
         client.connect()
         led_blinking = False  # Stop blinking when the connection is established
         led.on()  # Turn on the LED when both WiFi and MQTT are connected
@@ -222,70 +230,77 @@ def main():
                 flow_rates = []
                 total_liters_accumulated = []
 
+                flow_sensors_connected = 0
+                pressure_sensors_connected = 1
+
                 # Calculate flow rates and total liters for each flow sensor
                 for i, count in enumerate(flow_count):
-                    flow_rate = (count / calibration_factors[i]) * (60000.0 / interval)
-                    total_liters[i] += (flow_rate / 60.0)
-                    flow_rates.append(flow_rate)
-                    total_liters_accumulated.append(total_liters[i])
-                    flow_count[i] = 0  # Reset flow counter for the next interval
+                    if (i < flow_sensors_connected):
+                        flow_rate = (count / calibration_factors[i]) * (60000.0 / interval)
+                        total_liters[i] += (flow_rate / 60.0)
+                        flow_rates.append(flow_rate)
+                        total_liters_accumulated.append(total_liters[i])
+                        flow_count[i] = 0  # Reset flow counter for the next interval
 
 
                 # Print accumulated flow data for each flow sensor
                 for i, rate in enumerate(flow_rates):
-                    flow_data = {
-                        "Sensor": i + 6,
-                        "Type": 0,
-                        "Layer": 0,
-                        "FlowRate": rate,
-                        "TotalLiters": total_liters_accumulated[i]
-                    }
-                    print(json.dumps(flow_data))
-#                     print(f"Sensor: {flow_data['Sensor']}, Type: {flow_data['Type']}, Layer: {flow_data['Layer']}, Flow Rate: {flow_data['FlowRate']} L/min, Total Liters: {flow_data['TotalLiters']} L")
+                    if (i < flow_sensors_connected):
+                        flow_data = {
+                            "Sensor": i + 6,
+                            "Type": 0,
+                            "Layer": 0,
+                            "FlowRate": rate,
+                            "TotalLiters": total_liters_accumulated[i]
+                        }
+                        print(json.dumps(flow_data))
+    #                     print(f"Sensor: {flow_data['Sensor']}, Type: {flow_data['Type']}, Layer: {flow_data['Layer']}, Flow Rate: {flow_data['FlowRate']} L/min, Total Liters: {flow_data['TotalLiters']} L")
 
-                    # Publish flow data to MQTT if the client is available
-                    if mqtt_client:
-                        mqtt_data = json.dumps(flow_data)
-                        publish_mqtt(mqtt_client, MQTT_TOPIC_FLOW, mqtt_data)
+                        # Publish flow data to MQTT if the client is available
+                        if mqtt_client and mqtt_needed:
+                            mqtt_data = json.dumps(flow_data)
+                            publish_mqtt(mqtt_client, MQTT_TOPIC_FLOW, mqtt_data)
 
                     
                 print(" ")
 
                 # Loop through each pressure sensor
                 for i, adc_sensor in enumerate(adc_sensors):
-                    # Perform multisampling and calculate voltage value
-                    average_adc_value = multisample_adc(adc_sensor)
-#                      print("abg value: ", average_adc_value)
-                    voltage_value = regress(average_adc_value, PRESSURE_COEFFICIENTS)
+                    if (i < pressure_sensors_connected):
+                        # Perform multisampling and calculate voltage value
+                        average_adc_value = multisample_adc(adc_sensor)
+    #                      print("abg value: ", average_adc_value)
+                        voltage_value = regress(average_adc_value, PRESSURE_COEFFICIENTS)
 
-                    # Update lowest voltage
-                    lowest_voltages[i] = min(lowest_voltages[i], voltage_value)
+                        # Update lowest voltage
+                        lowest_voltages[i] = min(lowest_voltages[i], voltage_value)
 
-                    # Calculate pressure
-                    pressure = (voltage_value - OFFSETS[i]) * 400  # 250 for measuring till 1Mpa | 400 for measurements till 1.6Mpa
+                        # Calculate pressure
+                        pressure = (voltage_value - OFFSETS[i]) * 400  # 250 for measuring till 1Mpa | 400 for measurements till 1.6Mpa
 
-                    # Accumulate data for pressure sensors
-                    expected_voltages.append(voltage_value)
-                    lowest_voltages_accumulated.append(lowest_voltages[i])
-                    pressures.append(pressure)
+                        # Accumulate data for pressure sensors
+                        expected_voltages.append(voltage_value)
+                        lowest_voltages_accumulated.append(lowest_voltages[i])
+                        pressures.append(pressure)
 
                 # Print accumulated data for each pressure sensor
                 for i in range(len(adc_sensors)):
-                    sensor_data = {
-                        "Sensor": i + 6,
-                        "Type": 1,
-                        "Layer": 0,
-                        "ExpectedVoltage": expected_voltages[i],
-                        "LowestVoltage": lowest_voltages_accumulated[i],
-                        "CalculatedPressure": pressures[i]
-                    }
-                    print(json.dumps(sensor_data))
-#                     print(f"Sensor: {sensor_data['Sensor']}, Type: {sensor_data['Type']}, Layer: {sensor_data['Layer']}, Expected Voltage: {sensor_data['ExpectedVoltage']}, Lowest Voltage: {sensor_data['LowestVoltage']}, Calculated Pressure: {sensor_data['CalculatedPressure']}")
+                    if (i < pressure_sensors_connected):
+                        sensor_data = {
+                            "Sensor": i + 6,
+                            "Type": 1,
+                            "Layer": 0,
+                            "ExpectedVoltage": expected_voltages[i],
+                            "LowestVoltage": lowest_voltages_accumulated[i],
+                            "CalculatedPressure": pressures[i]
+                        }
+                        # print(json.dumps(sensor_data))
+                        print(f"Sensor: {sensor_data['Sensor']}, Type: {sensor_data['Type']}, Layer: {sensor_data['Layer']}, Expected Voltage: {sensor_data['ExpectedVoltage']}, Lowest Voltage: {sensor_data['LowestVoltage']}, Calculated Pressure: {sensor_data['CalculatedPressure']}")
 
-                    # Publish pressure data to MQTT if the client is available
-                    if mqtt_client:
-                        mqtt_data = json.dumps(sensor_data)
-                        publish_mqtt(mqtt_client, MQTT_TOPIC_PRESSURE, mqtt_data)
+                        # Publish pressure data to MQTT if the client is available
+                        if mqtt_client and mqtt_needed:
+                            mqtt_data = json.dumps(sensor_data)
+                            publish_mqtt(mqtt_client, MQTT_TOPIC_PRESSURE, mqtt_data)
 
                 print(" ")
 

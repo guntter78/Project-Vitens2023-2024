@@ -76,7 +76,7 @@ def connect_mqtt():
     led_blink_interval = 500  # milliseconden
 
     try:
-        mqtt_client = MQTTClient('esp32', MQTT_BROKER, port=MQTT_PORT)
+        mqtt_client = MQTTClient('esp32_1', MQTT_BROKER, port=MQTT_PORT)
         mqtt_client.connect()
         led_blinking = False  # Stop met knipperen als de verbinding tot stand is gebracht
         led.on()  # Zet de LED aan wanneer zowel WiFi als MQTT zijn verbonden
