@@ -82,15 +82,11 @@ sudo apt-get -y install postgresql
 sudo -u postgres psql -c "CREATE USER vitens WITH PASSWORD 'project';"
 sudo -u postgres psql -c  "ALTER USER vitens CREATEDB;" 
 
+createdb -h localhost -U vitens -e vitens_data
+
 echo
 echo add databas.....:
 echo start website......:
-cd ../website
-
-cd ../
 cd /project/website
-sudo python3 db_v2.py
-sudo python3 app.py
-
-
-
+python db_v2.py
+python app.py
