@@ -23,7 +23,7 @@ FLOW_CHANNELS = [config.flow_1, config.flow_2, config.flow_3, config.flow_4, con
 flow_count = [0] * 5  # Counters for flow sensors
 
 # Constants for offsets
-OFFSETS = [0.4808229, 0.5012701, 0.5012701, 0.5019741, 0.4963401] 
+OFFSETS = [0.4908229, 0.5012701, 0.5012701, 0.5019741, 0.4963401] 
 
 # Variables to keep the lowest voltage measured from each pressure sensor
 lowest_voltages = [1] * 5
@@ -241,8 +241,8 @@ def main():
                             "Sensor": i + 1,
                             "Type": 0,
                             "Layer": 1 if i <= 1 else 0,
-                            "FlowRate": rate,
-                            "TotalLiters": total_liters_accumulated[i]
+                            "FlowRate": round((rate if rate <= flow_rates[0] else flow_rates[0]),2),
+                            "TotalLiters": round(total_liters_accumulated[i],2)
                         }
     #                     print(json.dumps(flow_data))
     #                     print(f"Sensor: {flow_data['Sensor']}, Type: {flow_data['Type']}, Layer: {flow_data['Layer']}, Flow Rate: {flow_data['FlowRate']} L/min, Total Liters: {flow_data['TotalLiters']} L")
@@ -279,9 +279,9 @@ def main():
                             "Sensor": i + 1,
                             "Type": 1,
                             "Layer": 1 if i <= 1 else 0,
-                            "ExpectedVoltage": expected_voltages[i],
-                            "LowestVoltage": lowest_voltages_accumulated[i],
-                            "CalculatedPressure": pressures[i]
+#                             "ExpectedVoltage": expected_voltages[i],
+#                             "LowestVoltage": lowest_voltages_accumulated[i],
+                            "CalculatedPressure": round((pressures[i] if pressures[i] >= 0 else 0),2)
                         }
     #                     print(json.dumps(sensor_data))
     #                     print(f"Sensor: {sensor_data['Sensor']}, Type: {sensor_data['Type']}, Layer: {sensor_data['Layer']}, Expected Voltage: {sensor_data['ExpectedVoltage']}, Lowest Voltage: {sensor_data['LowestVoltage']}, Calculated Pressure: {sensor_data['CalculatedPressure']}")
@@ -302,5 +302,6 @@ def main():
 if __name__ == "__main__":
     setup()
     main()
+
 
 
