@@ -294,7 +294,7 @@ def fetch_data():
         conn = create_connection()
         if conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM flow")
+            cursor.execute("SELECT * FROM flows")
             data = cursor.fetchall()
             cursor.close()
             conn.close()
