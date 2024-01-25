@@ -2,54 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Vitens Water System Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
 
-        h1 {
-            text-align: center;
-        }
+    <title>Vitens Water Dashboard</title>
+    <base href="." />
 
-        table {
-            width: 80%;
-            margin: 20px auto;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 12px;
-            border: 1px solid #dddddd;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+    <script type="module" src="{{ url_for('static', filename='js/index.js') }}"></script>
 </head>
 <body>
-    <h1>Sensor Data</h1>
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Sensor ID</th>
-            <th>Mal Code</th>
-            <th>Flowrate</th>
-            <th>Cons Amount</th>
-            <th>Timestamp</th>
-        </tr>
-        {% for row in sensor_data %}
-            <tr>
-                <td>{{ row.id }}</td>
-                <td>{{ row.sensor_id }}</td>
-                <td>{{ row.mal_code }}</td>
-                <td>{{ row.flowrate }}</td>
-                <td>{{ row.cons_amount }}</td>
-                <td>{{ row.timestamp }}</td>
-            </tr>
-        {% endfor %}
-    </table>
+    <!-- Content here -->
+  <div id="root"></div>
 </body>
 </html>
