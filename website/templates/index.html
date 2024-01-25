@@ -3,25 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <title>Vitens Water System Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #dddddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
     <h1>Sensor Data</h1>
     <table>
         <tr>
             <th>ID</th>
-            <th>Location</th>
-            <th>Flow</th>
-            <th>Pressure</th>
-            <th>Date</th>
+            <th>Sensor ID</th>
+            <th>Mal Code</th>
+            <th>Flowrate</th>
+            <th>Cons Amount</th>
+            <th>Timestamp</th>
         </tr>
         {% for row in sensor_data %}
-        <tr>
-            <td>{{ row[0] }}</td>
-            <td>{{ row[1] }}</td>
-            <td>{{ row[2] }}</td>
-            <td>{{ row[3] }}</td>
-            <td>{{ row[4] }}</td>
-        </tr>
+            <tr>
+                <td>{{ row.id }}</td>
+                <td>{{ row.sensor_id }}</td>
+                <td>{{ row.mal_code }}</td>
+                <td>{{ row.flowrate }}</td>
+                <td>{{ row.cons_amount }}</td>
+                <td>{{ row.timestamp }}</td>
+            </tr>
         {% endfor %}
     </table>
 </body>
