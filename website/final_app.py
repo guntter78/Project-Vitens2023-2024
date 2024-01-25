@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for
 import psycopg2
 from decimal import Decimal
 from datetime import datetime
@@ -22,6 +22,14 @@ db_config = {
     "host": "localhost",
     "port": 5432,
 }
+
+def create_connection():
+    try:
+        conn = psycopg2.connect(**db_config)
+        return conn
+    except Exception as e:
+        print(f"Fout bij het verbinden met de database: {str(e)}")
+        return None
 
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
@@ -226,6 +234,7 @@ def on_message(client, userdata, msg):
                             # Fetch the 'value' from the 'conf' table based on 'sensor_id'
                             cursor.execute("SELECT value FROM config WHERE sensor_id = %s", (sensor_id,))
                             conf_value = cursor.fetchone()[0]  # Assuming you expect one result
+                            print(f"Calculated Pressure: {conf_value}")
                             input_data = pressure
                             noise_mode = conf_value  # Use the 'value' from 'conf' as noise_mode            
                             pressure = create_noise(input_data, noise_level, noise_mode)                           
