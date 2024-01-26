@@ -5,6 +5,7 @@ from datetime import datetime
 import paho.mqtt.client as mqtt
 import json
 import logging
+import random
 
 app = Flask(__name__)
 
@@ -87,9 +88,8 @@ def insert_level_and_malfunction_records():
 # input_data: sensor data to add noise to
 # noise_lelel: a value corresponding to % noise. For example: 0.2 is +- 20% noise, centered around 1.0 (for noise mode 1. For the others it's just a modifier and does not correspond to anyhting in particular.)
 # noise_mode: 0 - no malfunctioning. 1: default noise, centered around 1.
-noise_level = 0 
+noise_level = 0.00001
 def create_noise(input_data, noise_level, noise_mode):
-    import random
 
     rand = random.random()
 
@@ -234,7 +234,6 @@ def on_message(client, userdata, msg):
                             # Fetch the 'value' from the 'conf' table based on 'sensor_id'
                             cursor.execute("SELECT value FROM config WHERE sensor_id = %s", (sensor_id,))
                             conf_value = cursor.fetchone()[0]  # Assuming you expect one result
-                            print(f"Calculated Pressure: {conf_value}")
                             input_data = pressure
                             noise_mode = conf_value  # Use the 'value' from 'conf' as noise_mode            
                             pressure = create_noise(input_data, noise_level, noise_mode)                           
