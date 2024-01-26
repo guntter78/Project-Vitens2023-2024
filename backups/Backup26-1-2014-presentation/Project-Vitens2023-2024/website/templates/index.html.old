@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask App</title>
+</head>
+<body>
+    <h1>Flask App - Sensor Data</h1>
+    <h2>Sensor Data:</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Sensor ID</th>
+                <th>Malfunction Code</th>
+                <th>Flow Rate</th>
+                <th>Consumption Amount</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in sensor_data %}
+            <tr>
+                <td>{{ row.id }}</td>
+                <td>{{ row.sensor_id }}</td>
+                <td>{{ row.mal_code }}</td>
+                <td>{{ row.flowrate }}</td>
+                <td>{{ row.cons_amount }}</td>
+                <td>{{ row.timestamp }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="/malfunction">Configure Malfunction</a>
+</body>
+</html>

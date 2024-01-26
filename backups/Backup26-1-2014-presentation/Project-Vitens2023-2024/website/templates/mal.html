@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selecteer Sensor</title>
+</head>
+<body>
+    <h1>Selecteer een Sensor</h1>
+    <form method="POST" action="/update_config">
+        <label for="sensor">Selecteer sensor:</label>
+        <select name="sensor" id="sensor">
+            <option value="">Selecteer sensor</option>
+            {% for sensor_id in data %}
+            <option value="{{ sensor_id[0] }}">{{ sensor_id[0] }}</option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label for="malfunction">Selecteer malfunction:</label>
+        <select name="malfunction" id="malfunction">
+            <option value="">Selecteer malfunction</option>
+            {% for row in data2 %}
+            <option value="{{ row[0] }}">{{ row[1] }}</option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label for="value">Voer de waarde in:</label>
+        <input type="text" name="value" id="value" required>
+
+        <br><br>
+
+        <input type="submit" value="Bijwerken">
+    </form>
+</body>
+</html>
