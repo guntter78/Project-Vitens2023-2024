@@ -1,6 +1,6 @@
 # Welcome to the vitens project!
 
-## Connect to the RaspBerrry Pi
+## Connect to the RaspBerrry Pi and start the website
 To connect to the Raspberry Pi, you first need to connect to the access point (Wi-Fi):
 ```
 SSID: vitens-rpi-ap
@@ -11,6 +11,11 @@ To connect to the RPI ssh terminal.
 ```
 ssh vitensadmin@192.168.2.1 -p 25565
 password: vitensproject
+```
+
+run the webserver.
+```
+python /Project-Vitens2023-2024/website/final_app.py
 ```
 ## If the Raspberry Pi is reset do this:
 
