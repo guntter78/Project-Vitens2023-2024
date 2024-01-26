@@ -6,13 +6,16 @@ from umqtt.simple import MQTTClient
 import json
 
 # Global variables
+
+pressure_sensors_connected = 1
+flow_sensors_connected = 0
+
 is_reading_sensors = False  # True when green button is pressed | False when red button is pressed
 interval = 60000  # Interval for measuring sensors
 previous_millis = 0  # Variable to measure at certain intervals
 button_start_pressed_time = 0
 button_end_pressed_time = 0
 BUTTON_PRESS_DURATION = 3000  # Duration in milliseconds for button press to be considered valid
-
 
 # Constants for ADC channels
 PRESSURE_CHANNELS = [config.pressure_1, config.pressure_2, config.pressure_3, config.pressure_4, config.pressure_5]
@@ -23,32 +26,33 @@ FLOW_CHANNELS = [config.flow_1, config.flow_2, config.flow_3, config.flow_4, con
 flow_count = [0] * 5  # Counters for flow sensors
 
 # Constants for offsets
-OFFSETS = [0.4908229, 0.5012701, 0.5012701, 0.5019741, 0.4963401] 
+OFFSETS = [0.4829402, 0.4843519, 0.4907008, 0.4871744, 0.4762344]
 
 # Variables to keep the lowest voltage measured from each pressure sensor
 lowest_voltages = [1] * 5
 
-calibration_factors = [63.3, 65.68, 64.05, 66.84, 64.06]  # Calibration factors for flow sensors
+calibration_factors = [63.3, 63.3, 63.3, 63.3, 63.3]  # Calibration factors for flow sensors
 total_liters = [0.0] * 5  # Amount of water that went by each flow sensor
 
 # Mode: reversed (x,y = y,x) analysis
-# Polynomial degree 9, 17 x,y data pairs.
-# Correlation coefficient = 0.9989626481959121
-# Standard error = 0.01633840782839662
+# Polynomial degree 10, 19 x,y data pairs.
+# Correlation coefficient = 0.9999804013792513
+# Standard error = 0.0023917281938123478
 
 # Output form: Python function:
 # Coefficients for retrieving correct voltage from ADC conversion
 PRESSURE_COEFFICIENTS = [
-     4.1430779062682901e-002,
-     1.1267234164934186e-003,
-    -3.3448588314172105e-006,
-     6.4945160901450140e-009,
-    -6.8647362384291617e-012,
-     4.2762572403803007e-015,
-    -1.6136004263220210e-018,
-     3.6240521930679960e-022,
-    -4.4559540640740166e-026,
-     2.3084870973993295e-030
+     1.0544108430606616e-001,
+     5.9296048292552283e-004,
+    -1.1723312877998637e-006,
+     2.7985351784363641e-009,
+    -3.6955651458985855e-012,
+     2.9443605256591677e-015,
+    -1.4730705297682472e-018,
+     4.6568340199234337e-022,
+    -9.0262054834936031e-026,
+     9.7878511221570136e-030,
+    -4.5459995955173341e-034
 ]
 
 # WiFi credentials
@@ -91,7 +95,7 @@ def connect_mqtt():
     led_blink_interval = 500  # milliseconds
 
     try:
-        mqtt_client = MQTTClient('esp32_1', MQTT_BROKER, port=MQTT_PORT)
+        mqtt_client = MQTTClient('esp32_2', MQTT_BROKER, port=MQTT_PORT)
         mqtt_client.connect()
         led_blinking = False  # Stop blinking when the connection is established
         led.off()  # Turn off the LED
@@ -108,13 +112,14 @@ def connect_mqtt():
             # Zet de LED uit na de verbindingspoging
             led.value(0)
 
+
 # Publish data to MQTT topics
 def publish_mqtt(client, topic, data):
     print (client,topic,data)
     client.publish(topic, data)
 
 # Function to perform multisampling, exclude extreme values, and return the averaged ADC value
-def multisample_adc(adc, num_samples=64):
+def multisample_adc(adc, num_samples=20):
     values = []
 
     for _ in range(num_samples):
@@ -133,11 +138,12 @@ def multisample_adc(adc, num_samples=64):
 # Flow sensor interrupt handlers
 def flow_sensor_interrupt(pin, sensor_index):
     global flow_count
-    flow_count[sensor_index] += 1
+    if is_reading_sensors: 
+        flow_count[sensor_index] += 1
 
 # Function to initialize hardware components
 def setup():
-    global led, adc_sensors, is_reading_sensors, relay
+    global led, adc_sensors, is_reading_sensors
 
     # Set button pins as inputs with interrupts
     button_start = Pin(config.button_start_pin, Pin.IN, Pin.PULL_UP)
@@ -159,6 +165,7 @@ def setup():
 
     # Set LED pin as output
     led = Pin(config.led_pin, Pin.OUT)
+
     
 # Function to handle polynomial regression calculation
 def regress(x, coefficients):
@@ -197,8 +204,8 @@ def button_end_interrupt(pin):
 
 # Main function
 def main():
-    global is_reading_sensors, interval, previous_millis, flow_count, OFFSETS, lowest_voltages, calibration_factors, total_liters
-
+    global is_reading_sensors, interval, previous_millis, flow_count,  OFFSETS, lowest_voltages, calibration_factors, total_liters, pressure_sensors_connected, flow_sensors_connected
+    
     try:
         # Initialize WiFi connection at the beginning
         wlan = connect_wifi()
@@ -216,77 +223,95 @@ def main():
                 if utime.ticks_diff(current_millis, previous_millis) >= interval:
                     previous_millis = current_millis
 
-                    # Lists to accumulate data for each sensor type
-                    sensor_data_array = []
-                    flow_rates = [0] * 5
+                    # Lists to accumulate data for each sensor
+                    expected_voltages = []
+                    lowest_voltages_accumulated = []
+                    pressures = []
+
+                    # Lists to accumulate data for each flow sensor
+                    flow_rates = []
+                    total_liters_accumulated = []
+
+
 
                     # Calculate flow rates and total liters for each flow sensor
                     for i, count in enumerate(flow_count):
-                        flow_rate = (count / calibration_factors[i]) * (60000 / interval)
-                        flow_rates[i] = flow_rate
-                        total_liters[i] += (flow_rate / (60000 / interval))
+                        if (i < flow_sensors_connected):
+                            flow_rate = (count / calibration_factors[i]) * (60000.0 / interval)
+                            total_liters[i] += (flow_rate / 60.0)
+                            flow_rates.append(flow_rate)
+                            total_liters_accumulated.append(total_liters[i])
+                            flow_count[i] = 0  # Reset flow counter for the next interval
 
-                        # Append flow sensor data to the array
-                        flow_data = {
-                            "Sensor": i + 1,
-                            "Type": 0,
-                            "Layer": 1 if i <= 1 else 0,
-                            "FlowRate": round((flow_rate if flow_rate <= flow_rates[0] else flow_rates[0]),2),
-                            "TotalLiters": round(total_liters[i],2)
-                        }
-                        sensor_data_array.append(flow_data)
-                        flow_count[i] = 0  # Reset flow counter for the next interval
+
+                    # Print accumulated flow data for each flow sensor
+                    for i, rate in enumerate(flow_rates):
+                        if (i < flow_sensors_connected):
+                            flow_data = {
+                                "Sensor": i + 6,
+                                "Type": 0,
+                                "Layer": 0,
+                                "FlowRate": round(rate,2),
+                                "TotalLiters": round(total_liters_accumulated[i],2)
+                            }
+#                             print(json.dumps(flow_data))
+        #                     print(f"Sensor: {flow_data['Sensor']}, Type: {flow_data['Type']}, Layer: {flow_data['Layer']}, Flow Rate: {flow_data['FlowRate']} L/min, Total Liters: {flow_data['TotalLiters']} L")
+
+                            # Publish flow data to MQTT if the client is available
+                            if mqtt_client:
+                                mqtt_data = json.dumps(flow_data)
+                                publish_mqtt(mqtt_client, MQTT_TOPIC_FLOW, mqtt_data)
+
+                        
+                    print(" ")
 
                     # Loop through each pressure sensor
                     for i, adc_sensor in enumerate(adc_sensors):
-                        # Perform multisampling and calculate voltage value
-                        average_adc_value = multisample_adc(adc_sensor)
-                        voltage_value = regress(average_adc_value, PRESSURE_COEFFICIENTS)
+                        if (i < pressure_sensors_connected):
+                            # Perform multisampling and calculate voltage value
+                            average_adc_value = multisample_adc(adc_sensor)
+        #                      print("abg value: ", average_adc_value)
+                            voltage_value = regress(average_adc_value, PRESSURE_COEFFICIENTS)
 
-                        # Update lowest voltage
-                        lowest_voltages[i] = min(lowest_voltages[i], voltage_value)
+                            # Update lowest voltage
+                            lowest_voltages[i] = min(lowest_voltages[i], voltage_value)
 
-                        # Calculate pressure
-                        pressure = ((voltage_value - OFFSETS[i]) * 400 / 100)  # 250 for measuring till 1Mpa | 400 for measurements till 1.6Mpa
+                            # Calculate pressure
+                            pressure = (voltage_value - OFFSETS[i]) * 400  # 250 for measuring till 1Mpa | 400 for measurements till 1.6Mpa
 
-                        # Append pressure sensor data to the array
-                        pressure_data = {
-                            "Sensor": i + 1,
-                            "Type": 1,
-                            "Layer": 1 if i <= 1 else 0,
-                            "ExpectedVoltage": voltage_value,
-                            "LowestVoltage": lowest_voltages[i],
-                            "CalculatedPressure": round((pressure if pressure >= 0 else 0),2)
-                        }
-                        sensor_data_array.append(pressure_data)
+                            # Accumulate data for pressure sensors
+                            expected_voltages.append(voltage_value)
+                            lowest_voltages_accumulated.append(lowest_voltages[i])
+                            pressures.append(pressure)
 
-                        # Print lowest_voltages
-                    print(lowest_voltages)
+                    # Print accumulated data for each pressure sensor
+                    for i in range(len(adc_sensors)):
+                        if (i < pressure_sensors_connected):
+                            sensor_data = {
+                                "Sensor": i + 6,
+                                "Type": 1,
+                                "Layer": 0,
+#                                 "ExpectedVoltage": expected_voltages[i],
+#                                 "LowestVoltage": lowest_voltages_accumulated[i],
+                                "CalculatedPressure": round((pressures[i] if pressures[i] >= 0 else 0),2)
+                            }
+                            # print(json.dumps(sensor_data))
+#                             print(f"Sensor: {sensor_data['Sensor']}, Type: {sensor_data['Type']}, Layer: {sensor_data['Layer']}, Expected Voltage: {sensor_data['ExpectedVoltage']}, Lowest Voltage: {sensor_data['LowestVoltage']}, Calculated Pressure: {sensor_data['CalculatedPressure']}")
 
-                    # Print accumulated data for each sensor
-                    # for sensor_data in sensor_data_array:
-                        # print(json.dumps(sensor_data))
-
-                        # Publish sensor data to MQTT if the client is available
-                    if mqtt_client:
-                        mqtt_data = json.dumps(sensor_data_array)
-                        publish_mqtt(mqtt_client, MQTT_TOPIC_PRESSURE, mqtt_data)
-                        print("MQTT Message has been send")
+                            # Publish pressure data to MQTT if the client is available
+                            if mqtt_client:
+                                mqtt_data = json.dumps(sensor_data)
+                                publish_mqtt(mqtt_client, MQTT_TOPIC_PRESSURE, mqtt_data)
 
                     print(" ")
-                        
+
     except Exception as e:
         print(f"An error occurred: {e}")
         print("Sensor readings will continue, but data won't be sent to MQTT.")
-
 
 # Run the main function if this script is executed directly
 if __name__ == "__main__":
     setup()
     main()
-
-
-
-
 
 

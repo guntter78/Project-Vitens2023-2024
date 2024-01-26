@@ -114,7 +114,7 @@ def publish_mqtt(client, topic, data):
     client.publish(topic, data)
 
 # Function to perform multisampling, exclude extreme values, and return the averaged ADC value
-def multisample_adc(adc, num_samples=64):
+def multisample_adc(adc, num_samples=20):
     values = []
 
     for _ in range(num_samples):
@@ -216,65 +216,83 @@ def main():
                 if utime.ticks_diff(current_millis, previous_millis) >= interval:
                     previous_millis = current_millis
 
-                    # Lists to accumulate data for each sensor type
-                    sensor_data_array = []
-                    flow_rates = [0] * 5
+                    # Lists to accumulate data for each sensor
+                    expected_voltages = []
+                    lowest_voltages_accumulated = []
+                    pressures = []
+
+                    # Lists to accumulate data for each flow sensor
+                    flow_rates = []
+                    total_liters_accumulated = []
 
                     # Calculate flow rates and total liters for each flow sensor
                     for i, count in enumerate(flow_count):
                         flow_rate = (count / calibration_factors[i]) * (60000 / interval)
-                        flow_rates[i] = flow_rate
                         total_liters[i] += (flow_rate / (60000 / interval))
+                        flow_rates.append(flow_rate)
+                        # print(count)
+                        total_liters_accumulated.append(total_liters[i])
+                        flow_count[i] = 0  # Reset flow counter for the next interval
 
-                        # Append flow sensor data to the array
+
+                    # Print accumulated flow data for each flow sensor
+                    for i, rate in enumerate(flow_rates):
                         flow_data = {
                             "Sensor": i + 1,
                             "Type": 0,
                             "Layer": 1 if i <= 1 else 0,
-                            "FlowRate": round((flow_rate if flow_rate <= flow_rates[0] else flow_rates[0]),2),
-                            "TotalLiters": round(total_liters[i],2)
+                            "FlowRate": round((rate if rate <= flow_rates[0] else flow_rates[0]),2),
+                            "TotalLiters": round(total_liters_accumulated[i],2)
                         }
-                        sensor_data_array.append(flow_data)
-                        flow_count[i] = 0  # Reset flow counter for the next interval
+    #                     print(json.dumps(flow_data))
+    #                     print(f"Sensor: {flow_data['Sensor']}, Type: {flow_data['Type']}, Layer: {flow_data['Layer']}, Flow Rate: {flow_data['FlowRate']} L/min, Total Liters: {flow_data['TotalLiters']} L")
+
+                        # Publish flow data to MQTT if the client is available
+                        if mqtt_client:
+                            mqtt_data = json.dumps(flow_data)
+                            publish_mqtt(mqtt_client, MQTT_TOPIC_FLOW, mqtt_data)
+
+                        
+                    print(" ")
 
                     # Loop through each pressure sensor
                     for i, adc_sensor in enumerate(adc_sensors):
                         # Perform multisampling and calculate voltage value
                         average_adc_value = multisample_adc(adc_sensor)
+    #                      print("abg value: ", average_adc_value)
                         voltage_value = regress(average_adc_value, PRESSURE_COEFFICIENTS)
 
                         # Update lowest voltage
                         lowest_voltages[i] = min(lowest_voltages[i], voltage_value)
 
                         # Calculate pressure
-                        pressure = ((voltage_value - OFFSETS[i]) * 400 / 100)  # 250 for measuring till 1Mpa | 400 for measurements till 1.6Mpa
+                        pressure = (voltage_value - OFFSETS[i]) * 400  # 250 for measuring till 1Mpa | 400 for measurements till 1.6Mpa
 
-                        # Append pressure sensor data to the array
-                        pressure_data = {
+                        # Accumulate data for pressure sensors
+                        expected_voltages.append(voltage_value)
+                        lowest_voltages_accumulated.append(lowest_voltages[i])
+                        pressures.append(pressure)
+
+                    # Print accumulated data for each pressure sensor
+                    for i in range(len(adc_sensors)):
+                        sensor_data = {
                             "Sensor": i + 1,
                             "Type": 1,
                             "Layer": 1 if i <= 1 else 0,
-                            "ExpectedVoltage": voltage_value,
-                            "LowestVoltage": lowest_voltages[i],
-                            "CalculatedPressure": round((pressure if pressure >= 0 else 0),2)
+                            "ExpectedVoltage": expected_voltages[i],
+                            "LowestVoltage": lowest_voltages_accumulated[i],
+                            "CalculatedPressure": round((pressures[i] if pressures[i] >= 0 else 0),2)
                         }
-                        sensor_data_array.append(pressure_data)
+    #                     print(json.dumps(sensor_data))
+    #                     print(f"Sensor: {sensor_data['Sensor']}, Type: {sensor_data['Type']}, Layer: {sensor_data['Layer']}, Expected Voltage: {sensor_data['ExpectedVoltage']}, Lowest Voltage: {sensor_data['LowestVoltage']}, Calculated Pressure: {sensor_data['CalculatedPressure']}")
 
-                        # Print lowest_voltages
-                    print(lowest_voltages)
-
-                    # Print accumulated data for each sensor
-                    # for sensor_data in sensor_data_array:
-                        # print(json.dumps(sensor_data))
-
-                        # Publish sensor data to MQTT if the client is available
-                    if mqtt_client:
-                        mqtt_data = json.dumps(sensor_data_array)
-                        publish_mqtt(mqtt_client, MQTT_TOPIC_PRESSURE, mqtt_data)
-                        print("MQTT Message has been send")
+                        # Publish pressure data to MQTT if the client is available
+                        if mqtt_client:
+                            mqtt_data = json.dumps(sensor_data)
+                            publish_mqtt(mqtt_client, MQTT_TOPIC_PRESSURE, mqtt_data)
 
                     print(" ")
-                        
+                    
     except Exception as e:
         print(f"An error occurred: {e}")
         print("Sensor readings will continue, but data won't be sent to MQTT.")
@@ -284,9 +302,6 @@ def main():
 if __name__ == "__main__":
     setup()
     main()
-
-
-
 
 
 
