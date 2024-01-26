@@ -31,6 +31,7 @@ lowest_voltages = [1] * 5
 calibration_factors = [63.3, 65.68, 64.05, 66.84, 64.06]  # Calibration factors for flow sensors
 total_liters = [0.0] * 5  # Amount of water that went by each flow sensor
 
+# https://arachnoid.com/polysolve/
 # Mode: reversed (x,y = y,x) analysis
 # Polynomial degree 9, 17 x,y data pairs.
 # Correlation coefficient = 0.9989626481959121
